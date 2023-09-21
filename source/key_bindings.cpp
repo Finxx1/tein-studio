@@ -6,6 +6,7 @@ GLOBAL constexpr const char* KEY_BINDINGS_FALLBACK =
 "level_open { main [\"Ctrl\" \"O\"] }\n"
 "level_save  { main [\"Ctrl\" \"S\"] }\n"
 "level_save_as { main [\"Ctrl\" \"Shift\" \"S\"] }\n"
+"map_refresh { main [\"F5\"] }\n"
 "level_close { main [\"Ctrl\" \"W\"] }\n"
 "level_close_all { main [\"Ctrl\" \"Alt\" \"W\"] }\n"
 "level_resize { main [\"Ctrl\" \"R\"] }\n"
@@ -15,7 +16,7 @@ GLOBAL constexpr const char* KEY_BINDINGS_FALLBACK =
 "history_end { main [\"Ctrl\" \"Shift\" \"Y\"] }\n"
 "camera_zoom_out { main [\"Ctrl\" \"-\"] }\n"
 "camera_zoom_in { main [\"Ctrl\" \"=\"] }\n"
-"run_game { main [\"F5\"] }\n"
+"run_game { main [\"Ctrl\" \"Return\"] }\n"
 "preferences { main [\"F2\"] }\n"
 "about { main [\"F3\"] }\n"
 "bug_report { main [\"F4\"] }\n"
@@ -224,6 +225,7 @@ FILDEF void internal__load_editor_key_bindings (const GonObject& a, const GonObj
     internal__add_key_binding(a, b, KB_LEVEL_OPEN          , hb_load                    );
     internal__add_key_binding(a, b, KB_LEVEL_SAVE          , hb_save                    );
     internal__add_key_binding(a, b, KB_LEVEL_SAVE_AS       , hb_save_as                 );
+    internal__add_key_binding(a, b, KB_REFRESH             , hb_refresh                 );
     internal__add_key_binding(a, b, KB_LEVEL_CLOSE         , close_current_tab          );
     internal__add_key_binding(a, b, KB_LEVEL_CLOSE_ALL     , close_all_tabs             );
     internal__add_key_binding(a, b, KB_LEVEL_RESIZE        , le_resize                  );

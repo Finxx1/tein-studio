@@ -163,7 +163,6 @@ FILDEF void init_application (int argc, char** argv)
 
         init_layer_panel   ();
         init_color_picker  ();
-        init_palette_lookup();
 
         init_editor(argc, argv);
 

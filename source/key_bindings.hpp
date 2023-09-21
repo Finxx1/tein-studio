@@ -11,6 +11,7 @@ GLOBAL constexpr const char* KB_LEVEL_NEW            = "level_new";
 GLOBAL constexpr const char* KB_LEVEL_OPEN           = "level_open";
 GLOBAL constexpr const char* KB_LEVEL_SAVE           = "level_save";
 GLOBAL constexpr const char* KB_LEVEL_SAVE_AS        = "level_save_as";
+GLOBAL constexpr const char* KB_REFRESH              = "map_refresh";
 GLOBAL constexpr const char* KB_LEVEL_CLOSE          = "level_close";
 GLOBAL constexpr const char* KB_LEVEL_CLOSE_ALL      = "level_close_all";
 GLOBAL constexpr const char* KB_LEVEL_RESIZE         = "level_resize";

@@ -10,6 +10,7 @@ FILDEF void hb_new           ();
 FILDEF void hb_load          ();
 FILDEF void hb_save          ();
 FILDEF void hb_save_as       ();
+FILDEF void hb_refresh       ();
 FILDEF void hb_undo_action   ();
 FILDEF void hb_redo_action   ();
 FILDEF void hb_history_begin ();

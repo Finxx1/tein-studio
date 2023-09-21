@@ -14,6 +14,7 @@ FILDEF void init_palette_lookup ()
 {
     LOG_DEBUG("Looking for palette information...");
 
+              std::string PATH_SDK       = strip_file_name(get_current_tab().name) + "../";
     constexpr const char* PATH_STEAM_X86 = ":/Program Files (x86)/Steam/steamapps/common/theendisnigh/";
     constexpr const char* PATH_STEAM_X64 = ":/Program Files/Steam/steamapps/common/theendisnigh/";
     constexpr const char* PATH_EPIC_X86  = ":/Program Files (x86)/Epic Games/theendisnigh/";
@@ -27,6 +28,7 @@ FILDEF void init_palette_lookup ()
     for (auto& drive: drives)
     {
         std::string drive_letter(1, drive);
+        paths.push_back(PATH_SDK); 
         paths.push_back(drive_letter + PATH_STEAM_X86);
         paths.push_back(drive_letter + PATH_STEAM_X64);
         paths.push_back(drive_letter + PATH_EPIC_X86);
@@ -138,6 +140,7 @@ FILDEF void init_palette_lookup ()
         // We can leave early because we have found all the files we are looking for so there's nothing else to search!
         if (!palette_data.empty() && !tileset_data.empty() && !append_data.empty() && !patch_data.empty() && !merge_data.empty())
         {
+            palette_main_lookup.clear();
             break;
         }
     }

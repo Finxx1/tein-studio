@@ -2,6 +2,7 @@ GLOBAL constexpr const char* HB_NAME_NEW         = "New";
 GLOBAL constexpr const char* HB_NAME_LOAD        = "Load";
 GLOBAL constexpr const char* HB_NAME_SAVE        = "Save";
 GLOBAL constexpr const char* HB_NAME_SAVE_AS     = "Save As";
+GLOBAL constexpr const char* HB_NAME_REFRESH     = "Refresh";
 GLOBAL constexpr const char* HB_NAME_UNDO        = "Undo";
 GLOBAL constexpr const char* HB_NAME_REDO        = "Redo";
 GLOBAL constexpr const char* HB_NAME_ZOOM_OUT    = "Zoom Out";
@@ -19,6 +20,7 @@ GLOBAL constexpr const char* HB_INFO_NEW         = "Create a new empty level.";
 GLOBAL constexpr const char* HB_INFO_LOAD        = "Load an existing level.";
 GLOBAL constexpr const char* HB_INFO_SAVE        = "Save the current level.";
 GLOBAL constexpr const char* HB_INFO_SAVE_AS     = "Save the current level as a new file.";
+GLOBAL constexpr const char* HB_INFO_REFRESH     = "Refreshes the current game path. Click if the map editor doesn't color certain cells.";
 GLOBAL constexpr const char* HB_INFO_UNDO        = "Undo the last recorded action.";
 GLOBAL constexpr const char* HB_INFO_REDO        = "Redo the last recorded action.";
 GLOBAL constexpr const char* HB_INFO_ZOOM_OUT    = "Zoom out the editor camera.";
@@ -127,6 +129,7 @@ FILDEF void do_hotbar ()
     width += calculate_button_txt_width(HB_NAME_LOAD       );
     width += calculate_button_txt_width(HB_NAME_SAVE       );
     width += calculate_button_txt_width(HB_NAME_SAVE_AS    );
+    width += calculate_button_txt_width(HB_NAME_REFRESH    );
     width += calculate_button_txt_width(HB_NAME_UNDO       );
     width += calculate_button_txt_width(HB_NAME_REDO       );
     width += calculate_button_txt_width(HB_NAME_ZOOM_OUT   );
@@ -147,6 +150,7 @@ FILDEF void do_hotbar ()
     do_button_txt(hb_load,            bh,  UI_NONE,         HB_NAME_LOAD,         HB_INFO_LOAD,         KB_LEVEL_OPEN                           );
     do_button_txt(hb_save,            bh,  save_flags,      HB_NAME_SAVE,         HB_INFO_SAVE,         KB_LEVEL_SAVE                           );
     do_button_txt(hb_save_as,         bh,  save_as_flags,   HB_NAME_SAVE_AS,      HB_INFO_SAVE_AS,      KB_LEVEL_SAVE_AS                        );
+    do_button_txt(hb_refresh,         bh,  UI_NONE,         HB_NAME_REFRESH,      HB_INFO_REFRESH,      KB_REFRESH                              );
     do_button_txt(hb_undo_action,     bh,  undo_flags,      HB_NAME_UNDO,         HB_INFO_UNDO,         KB_UNDO                                 );
     do_button_txt(hb_redo_action,     bh,  redo_flags,      HB_NAME_REDO,         HB_INFO_REDO,         KB_REDO                                 );
     do_button_txt(hb_zoom_out,        bh,  zoom_out_flags,  HB_NAME_ZOOM_OUT,     HB_INFO_ZOOM_OUT,     KB_CAMERA_ZOOM_OUT                      );
@@ -165,7 +169,8 @@ FILDEF void do_hotbar ()
     do_button_img(hb_new,          bw,bh,  UI_NONE,         &CLIP_NEW,            HB_INFO_NEW,          KB_LEVEL_NEW,        HB_NAME_NEW        );
     do_button_img(hb_load,         bw,bh,  UI_NONE,         &CLIP_LOAD,           HB_INFO_LOAD,         KB_LEVEL_OPEN,       HB_NAME_LOAD       );
     do_button_img(hb_save,         bw,bh,  save_flags,      &CLIP_SAVE,           HB_INFO_SAVE,         KB_LEVEL_SAVE,       HB_NAME_SAVE       );
-    do_button_img(hb_save,         bw,bh,  save_as_flags,   &CLIP_SAVE_AS,        HB_INFO_SAVE_AS,      KB_LEVEL_SAVE_AS,    HB_NAME_SAVE_AS    );
+    do_button_img(hb_save_as,      bw,bh,  save_as_flags,   &CLIP_SAVE_AS,        HB_INFO_SAVE_AS,      KB_LEVEL_SAVE_AS,    HB_NAME_SAVE_AS    );
+    do_button_img(hb_refresh,      bw,bh,  UI_NONE,         &CLIP_REFRESH,        HB_INFO_REFRESH,      KB_REFRESH,          HB_NAME_REFRESH    );
     do_button_img(hb_undo_action,  bw,bh,  undo_flags,      &CLIP_UNDO,           HB_INFO_UNDO,         KB_UNDO,             HB_NAME_UNDO       );
     do_button_img(hb_redo_action,  bw,bh,  redo_flags,      &CLIP_REDO,           HB_INFO_REDO,         KB_REDO,             HB_NAME_REDO       );
     do_button_img(hb_zoom_out,     bw,bh,  zoom_out_flags,  &CLIP_ZOOM_OUT,       HB_INFO_ZOOM_OUT,     KB_CAMERA_ZOOM_OUT,  HB_NAME_ZOOM_OUT   );
@@ -222,6 +227,13 @@ FILDEF void hb_save_as ()
         case (Tab_Type::LEVEL): le_save_as     (); break;
         case (Tab_Type::MAP  ): save_map_tab_as(); break;
     }
+}
+
+FILDEF void hb_refresh()
+{
+    if (!are_there_any_tabs) return;
+
+    init_palette_lookup();
 }
 
 FILDEF void hb_undo_action ()
