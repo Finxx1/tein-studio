@@ -1,4 +1,8 @@
-tein-editor.vcxproj.user
-tein-editor.vcxproj.filters
+*.user
+*.filters
+
+binary/win32/*
+object/win32/*
+x64
 
 .vs/

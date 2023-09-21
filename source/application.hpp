@@ -1,6 +1,6 @@
 #pragma once
 
-GLOBAL constexpr const char* APP_TITLE = "The End is Nigh: Editor";
+GLOBAL constexpr const char* APP_TITLE = "The End is Nigh: Studio";
 
 GLOBAL constexpr int APP_VER_MAJOR = 1;
 GLOBAL constexpr int APP_VER_MINOR = 0;
