@@ -376,6 +376,18 @@ FILDEF void do_map_editor ()
         float x2 = nx+MAP_NODE_W;
         float y2 = ny+MAP_NODE_H;
 
+        if (x2 + tab.camera.x < 0)
+            continue;
+
+        if (x1 + tab.camera.x > p1.w)
+            continue;
+
+        if (y1 + tab.camera.y < 0)
+            continue;
+
+        if (y2 + tab.camera.y > p1.h)
+            continue;
+
         std::string tileset(internal__get_tileset(node.lvl));
         set_draw_color(0,0,0,1);
         fill_quad(x1,y1,x2,y2);
