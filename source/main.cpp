@@ -1,5 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#define BUILD_X64
 
 #include "main.hpp"
 

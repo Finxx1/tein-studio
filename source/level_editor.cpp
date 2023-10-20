@@ -2112,12 +2112,6 @@ FILDEF void le_load_prev_level ()
     {
         close_current_tab();
     }
-    else
-    {
-        // Reset the undo history otherwise we keep the undo state from the previously loaded level!
-        tab.level_history.current_position = 0;
-        tab.level_history.state.clear();
-    }
 }
 
 FILDEF void le_load_next_level ()
@@ -2172,12 +2166,6 @@ FILDEF void le_load_next_level ()
     if (!load_level(tab.level, tab.name))
     {
         close_current_tab();
-    }
-    else
-    {
-        // Reset the undo history otherwise we keep the undo state from the previously loaded level!
-        tab.level_history.current_position = 0;
-        tab.level_history.state.clear();
     }
 }
 
