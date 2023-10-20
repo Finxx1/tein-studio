@@ -1083,7 +1083,7 @@ FILDEF void do_level_editor ()
 
     end_scissor();
 
-    // Draw the greyed out area outside of the level's camera bounds.
+    // Draw the greyed out area outside of the level's camera bounds. Thanks to Uzerro for real camera bound code.
     if (level_editor.bounds_visible)
     {
         // It seems, from testing, that the game uses the camera tiles to calculate the visible
@@ -1098,10 +1098,10 @@ FILDEF void do_level_editor ()
 
         auto& tag_layer = tab.level.data[LEVEL_LAYER_TAG];
 
-        int cl = lw-1;
-        int ct = lh-1;
-        int cr = 0;
-        int cb = 0;
+        float cl = lw-1;
+        float ct = lh-1;
+        float cr = 0;
+        float cb = 0;
 
         int camera_tile_count = 0;
 
@@ -1114,10 +1114,10 @@ FILDEF void do_level_editor ()
                 {
                     ++camera_tile_count;
 
-                    cl = std::min(cl, ix);
-                    ct = std::min(ct, iy);
-                    cr = std::max(cr, ix);
-                    cb = std::max(cb, iy);
+                    cl = std::min(cl, (float)ix);
+                    ct = std::min(ct, (float)iy);
+                    cr = std::max(cr, (float)ix);
+                    cb = std::max(cb, (float)iy);
                 }
             }
         }
@@ -1132,37 +1132,63 @@ FILDEF void do_level_editor ()
                     vec2 tile = internal__mouse_to_tile_position();
                     ++camera_tile_count;
 
-                    cl = std::min(cl, CAST(int, tile.x));
-                    ct = std::min(ct, CAST(int, tile.y));
-                    cr = std::max(cr, CAST(int, tile.x));
-                    cb = std::max(cb, CAST(int, tile.y));
+                    cl = std::min(cl, CAST(float, tile.x));
+                    ct = std::min(ct, CAST(float, tile.y));
+                    cr = std::max(cr, CAST(float, tile.x));
+                    cb = std::max(cb, CAST(float, tile.y));
                 }
             }
         }
 
         // If there is just one then there is no bounds.
-        if (camera_tile_count == 1)
+        if (camera_tile_count == 0)
         {
-            cl = lw-1;
-            ct = lh-1;
-            cr = 0;
-            cb = 0;
+            cr = lw - 1;
+            cb = lh - 1;
+            cl = 0;
+            ct = 0;
         }
 
-        float cx1 = x + (CAST(float, std::min(cl, cr)    ) * DEFAULT_TILE_SIZE);
-        float cy1 = y + (CAST(float, std::min(ct, cb)    ) * DEFAULT_TILE_SIZE);
-        float cx2 = x + (CAST(float, std::max(cl, cr) + 1) * DEFAULT_TILE_SIZE);
-        float cy2 = y + (CAST(float, std::max(ct, cb) + 1) * DEFAULT_TILE_SIZE);
+        // bugfix?
+        cr++;
+        cb++;
+
+        // Actual camera bounds in game always fit to exactly a 16:9 ratio.
+        float c_w = cr - cl;
+        float c_h = cb - ct;
+        float h_center = cl + c_w / 2;
+        float v_center = ct + c_h / 2;
+
+        // If the camera bounds are too wide, adjust the vertical component to match.
+        if (c_w * 9 > c_h * 16)
+        {
+            c_h = c_w * 9 / 16;
+            ct = v_center - c_h / 2;
+            cb = v_center + c_h / 2;
+        }
+
+        // If the camera bounds are too tall, adjust the horizontal component to match.
+        else if (c_h * 16 > c_w * 9)
+        {
+            c_w = c_h * 16 / 9;
+            cl = h_center - c_w / 2;
+            cr = h_center + c_w / 2;
+        }
+
+        float cx1 = x + (CAST(float, std::min(cl, cr)) * DEFAULT_TILE_SIZE);
+        float cy1 = y + (CAST(float, std::min(ct, cb)) * DEFAULT_TILE_SIZE);
+        float cx2 = x + (CAST(float, std::max(cl, cr)) * DEFAULT_TILE_SIZE);
+        float cy2 = y + (CAST(float, std::max(ct, cb)) * DEFAULT_TILE_SIZE);
 
         begin_stencil();
 
         stencil_mode_erase();
-        set_draw_color(vec4(1,1,1,1));
+        set_draw_color(vec4(1, 1, 1, 1));
         fill_quad(cx1, cy1, cx2, cy2);
 
         stencil_mode_draw();
         set_draw_color(editor_settings.out_of_bounds_color);
-        fill_quad(x, y, x+w, y+h);
+        fill_quad(x, y, x + w, y + h);
 
         end_stencil();
     }
