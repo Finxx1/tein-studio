@@ -16,7 +16,7 @@ struct Camera
 
 GLOBAL constexpr size_t INVALID_TAB = CAST(size_t, -1);
 
-enum class Tab_Type { LEVEL, MAP };
+enum class Tab_Type { LEVEL, MAP, SAVE };
 
 struct Tab
 {
@@ -38,6 +38,10 @@ struct Tab
     Map_History   map_history;
     Map_Select    map_select;
     Map_Node_Info map_node_info;
+
+    // SAVE
+    Save          save;
+    Save_History  save_history;
 };
 
 struct Editor
@@ -85,12 +89,15 @@ FILDEF void set_main_window_subtitle_for_tab (const std::string& subtitle);
 
 FILDEF bool are_there_any_level_tabs ();
 FILDEF bool are_there_any_map_tabs   ();
+FILDEF bool are_there_any_save_tabs  ();
 
 FILDEF void create_new_level_tab_and_focus (int w = DEFAULT_LEVEL_WIDTH, int h = DEFAULT_LEVEL_HEIGHT);
 FILDEF void create_new_map_tab_and_focus   ();
+FILDEF void create_new_save_tab_and_focus  ();
 
 FILDEF bool current_tab_is_level ();
 FILDEF bool current_tab_is_map   ();
+FILDEF bool current_tab_is_save  ();
 
 FILDEF void close_tab         (size_t index);
 FILDEF void close_current_tab ();

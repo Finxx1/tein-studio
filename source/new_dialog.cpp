@@ -32,6 +32,11 @@ FILDEF void internal__okay_new ()
             LOG_DEBUG("Creating blank world map!");
             create_new_map_tab_and_focus();
         } break;
+        case (Tab_Type::SAVE):
+        {
+            LOG_DEBUG("Creating blank save file!");
+            create_new_save_tab_and_focus();
+        }
     }
 
     hide_window("New");
@@ -68,7 +73,7 @@ FILDEF void do_new ()
     float vw = get_viewport().w;
     float vh = get_viewport().h;
 
-    float bw = roundf(vw / 2);
+    float bw = roundf(vw / 3);
     float bh = nvfh - WINDOW_BORDER;
 
     // Top tabs for switching type of file to create.
@@ -80,9 +85,11 @@ FILDEF void do_new ()
 
     UI_Flag level_flags = (current_tab_type == Tab_Type::LEVEL) ? UI_HIGHLIGHT : UI_INACTIVE;
     UI_Flag map_flags   = (current_tab_type == Tab_Type::MAP  ) ? UI_HIGHLIGHT : UI_INACTIVE;
+    UI_Flag save_flags  = (current_tab_type == Tab_Type::SAVE ) ? UI_HIGHLIGHT : UI_INACTIVE;
 
     if (do_button_txt(NULL, bw,bh, level_flags, "Level"    )) current_tab_type = Tab_Type::LEVEL;
     if (do_button_txt(NULL, bw,bh, map_flags,   "World Map")) current_tab_type = Tab_Type::MAP;
+    if (do_button_txt(NULL, bw,bh, save_flags,  "Save"     )) current_tab_type = Tab_Type::SAVE;
 
     // Just in case of weird rounding manually add the right separator.
     cursor.x = vw;
@@ -102,9 +109,9 @@ FILDEF void do_new ()
     set_panel_cursor(&cursor);
 
     // Just to make sure that we always reach the end of the panel space.
-    float bw2 = vw - bw;
+    float bw2 = vw - vw/2;
 
-    if (do_button_txt(NULL, bw ,bh, UI_NONE, "Create")) internal__okay_new();
+    if (do_button_txt(NULL, vw/2,bh, UI_NONE, "Create")) internal__okay_new();
     if (do_button_txt(NULL, bw2,bh, UI_NONE, "Cancel")) cancel_new();
 
     // Add a separator to the left for symmetry.

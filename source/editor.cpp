@@ -171,7 +171,8 @@ FILDEF void init_editor (int argc, char** argv)
 
     init_level_editor();
     init_map_editor();
-
+    init_save_editor();
+    
     // Handle restoring levels/maps from a previous instance that crashed.
     LOG_DEBUG("Looking for level/map files to restore...");
     std::vector<std::string> restore_files = internal__get_restore_files();
@@ -263,6 +264,7 @@ FILDEF void do_editor ()
     {
         case (Tab_Type::LEVEL): do_level_editor(); break;
         case (Tab_Type::MAP  ): do_map_editor  (); break;
+        case (Tab_Type::SAVE ): do_save_editor (); break;
     }
 }
 
@@ -278,6 +280,7 @@ FILDEF void handle_editor_events ()
             std::string ext(file.substr(file.find_last_of(".")));
             if      (ext == ".lvl") level_drop_file(tab, file);
             else if (ext == ".csv") map_drop_file  (tab, file);
+            else                    save_drop_file (tab, file);
         }
         SDL_free(main_event.drop.file); // Docs say to free it!
     }
@@ -562,6 +565,14 @@ FILDEF bool are_there_any_map_tabs ()
     }
     return false;
 }
+FILDEF bool are_there_any_save_tabs()
+{
+    for (auto tab: editor.tabs)
+    {
+        if (tab.type == Tab_Type::SAVE) return true;
+    }
+    return false;
+}
 
 FILDEF void create_new_level_tab_and_focus (int w, int h)
 {
@@ -589,6 +600,16 @@ FILDEF void create_new_map_tab_and_focus ()
     tab.map_node_info.selecting  = false;
 }
 
+FILDEF void create_new_save_tab_and_focus ()
+{
+    Tab& tab = internal__create_new_tab_and_focus(Tab_Type::SAVE);
+
+    // Save-specific initialization stuff.
+    create_blank_save(tab.save);
+    tab.save_history.current_position = -1;
+    tab.save_history.state.clear();
+}
+
 FILDEF bool current_tab_is_level ()
 {
     if (!are_there_any_tabs()) return false;
@@ -598,6 +619,11 @@ FILDEF bool current_tab_is_map ()
 {
     if (!are_there_any_tabs()) return false;
     return (get_current_tab().type == Tab_Type::MAP);
+}
+FILDEF bool current_tab_is_save ()
+{
+    if (!are_there_any_tabs()) return false;
+    return (get_current_tab().type == Tab_Type::SAVE);
 }
 
 FILDEF void close_tab (size_t index)
@@ -733,6 +759,7 @@ FILDEF bool is_current_tab_empty ()
     {
         case (Tab_Type::LEVEL): return is_current_level_empty();
         case (Tab_Type::MAP  ): return is_current_map_empty();
+        case (Tab_Type::SAVE ): return is_current_save_empty();
     }
     return false;
 }
@@ -784,6 +811,7 @@ FILDEF void open_recently_closed_tab ()
         Tab* tab = NULL;
         if      (ext == ".lvl") level_drop_file(tab, name);
         else if (ext == ".csv") map_drop_file  (tab, name);
+        else                    save_drop_file (tab, name); // since save files can have different extensions, just assume it is one
     }
 }
 
@@ -794,8 +822,10 @@ FILDEF void save_restore_files ()
         std::string file_name;
         if      (editor.tabs.at(i).type == Tab_Type::LEVEL) file_name = ".lvl.restore" + std::to_string(i);
         else if (editor.tabs.at(i).type == Tab_Type::MAP  ) file_name = ".csv.restore" + std::to_string(i);
+        else if (editor.tabs.at(i).type == Tab_Type::SAVE ) file_name = ".sav.restore" + std::to_string(i);
         file_name = make_path_absolute(file_name);
         if      (editor.tabs.at(i).type == Tab_Type::LEVEL) save_restore_level(editor.tabs.at(i), file_name);
         else if (editor.tabs.at(i).type == Tab_Type::MAP  ) save_restore_map  (editor.tabs.at(i), file_name);
+        else if (editor.tabs.at(i).type == Tab_Type::SAVE ) save_restore_save (editor.tabs.at(i), file_Name);
     }
 }
