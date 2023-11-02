@@ -38,6 +38,7 @@ GLOBAL constexpr const char* KB_GPAK_UNPACK          = "gpak_unpack";
 GLOBAL constexpr const char* KB_GPAK_PACK            = "gpak_pack";
 GLOBAL constexpr const char* KB_TOGGLE_ENTITY        = "toggle_large_entity";
 GLOBAL constexpr const char* KB_TOGGLE_GUIDES        = "toggle_entity_guides";
+GLOBAL constexpr const char* KB_TOGGLE_PALETTE       = "toggle_palette";
 GLOBAL constexpr const char* KB_GRID_TOGGLE          = "grid_toggle";
 GLOBAL constexpr const char* KB_BOUNDS_TOGGLE        = "bounds_toggle";
 GLOBAL constexpr const char* KB_LAYERS_TOGGLE        = "layer_trans_toggle";

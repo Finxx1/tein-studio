@@ -43,6 +43,7 @@ GLOBAL constexpr quad CLIP_LOAD        = { 144,   0, 24, 24 };
 GLOBAL constexpr quad CLIP_SAVE        = { 168,   0, 24, 24 };
 GLOBAL constexpr quad CLIP_SAVE_AS     = { 192,   0, 24, 24 };
 GLOBAL constexpr quad CLIP_REFRESH     = { 120,  72, 24, 24 };
+GLOBAL constexpr quad CLIP_PALETTE     = { 144,  72, 24, 24 };
 GLOBAL constexpr quad CLIP_UNDO        = { 216,   0, 24, 24 };
 GLOBAL constexpr quad CLIP_REDO        = { 120,  24, 24, 24 };
 GLOBAL constexpr quad CLIP_ZOOM_OUT    = { 144,  24, 24, 24 };

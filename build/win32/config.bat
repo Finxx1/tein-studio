@@ -1,6 +1,6 @@
 @echo off
 
-set Architecture=amd64
+set Architecture=x86
 set BuildMode=Release
 
 set Libraries=SDL2main.lib SDL2.lib freetype.lib opengl32.lib dinput8.lib dxguid.lib user32.lib gdi32.lib winmm.lib imm32.lib ole32.lib oleaut32.lib shell32.lib version.lib uuid.lib advapi32.lib setupapi.lib comdlg32.lib shlwapi.lib dbghelp.lib setargv.obj

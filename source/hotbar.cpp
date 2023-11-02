@@ -231,7 +231,7 @@ FILDEF void hb_save_as ()
 
 FILDEF void hb_refresh()
 {
-    if (!are_there_any_tabs) return;
+    if (!are_there_any_tabs()) return;
 
     init_palette_lookup();
 }

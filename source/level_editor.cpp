@@ -921,6 +921,8 @@ FILDEF void init_level_editor ()
     level_editor.mirror_h = false;
     level_editor.mirror_v = false;
 
+    level_editor.palette = false;
+
     level_editor.bounds   = { 0, 0, 0, 0 };
     level_editor.viewport = { 0, 0, 0, 0 };
 }
@@ -951,6 +953,20 @@ FILDEF void do_level_editor ()
     level_editor.viewport = get_viewport();
 
     const Tab& tab = get_current_tab();
+
+    // Get level palette, if it has any
+    std::string adj_name = strip_file_path(tab.name);
+    bool has_palette = true;
+    Palette palette;
+    std::string lvl_prefix = adj_name.substr(0, adj_name.find('-'));
+    
+    if (palette_secondary_lookup.find(lvl_prefix) == palette_secondary_lookup.end()) has_palette = false;
+    else
+    {
+        palette = palette_secondary_lookup[lvl_prefix];
+    }
+
+    if (!has_palette) level_editor.palette = false;
 
     // If we're in the level editor viewport then the cursor can be one of
     // the custom tool cursors based on what our current tool currently is.
@@ -1002,7 +1018,17 @@ FILDEF void do_level_editor ()
 
     set_draw_color(ui_color_black);
     fill_quad(x-px, y-px, x+w+px, y+h+px);
-    set_draw_color(editor_settings.background_color);
+    if (level_editor.palette)
+    {
+        vec4 c = palette[7] + palette[8] + palette[9] + palette[10] + palette[11];
+        c.r /= 5;
+        c.g /= 5;
+        c.b /= 5;
+        c.a /= 5;
+        set_draw_color(c);
+    }
+    else
+        set_draw_color(editor_settings.background_color);
     fill_quad(x, y, x+w, y+h);
 
     // Determine the currently selected layer so that we can make all of the
@@ -1023,20 +1049,46 @@ FILDEF void do_level_editor ()
     Texture_Atlas& atlas = get_editor_atlas_large();
     set_tile_batch_texture(atlas.texture);
 
+    flush_batched_tile();
+    set_palettization(level_editor.palette);
+
     // Draw all of the tiles for the level, layer-by-layer.
     for (Level_Layer i=LEVEL_LAYER_BACK2; (i<=LEVEL_LAYER_BACK2)&&(i>=LEVEL_LAYER_TAG); --i)
     {
         // If the layer is not active then we do not bother drawing its content.
         if (!tab.tile_layer_active[i]) continue;
 
+        float tile_alpha = 1;
+
         if (level_editor.layer_transparency && (selected_layer != LEVEL_LAYER_TAG && selected_layer > i))
         {
-            set_tile_batch_color(vec4(1,1,1,SEMI_TRANS));
+            tile_alpha = SEMI_TRANS;
         }
+        
+        if (!level_editor.palette) set_tile_batch_color(vec4(1,1,1,tile_alpha));
         else
         {
-            set_tile_batch_color(vec4(1,1,1,1));
+            if (i == LEVEL_LAYER_OVERLAY || i == LEVEL_LAYER_TAG) continue;
+
+            vec4 tile_color;
+
+            switch (i)
+            {
+            case LEVEL_LAYER_ACTIVE:
+                tile_color = palette[0];
+                break;
+            case LEVEL_LAYER_BACK1:
+                tile_color = palette[4];
+                break;
+            case LEVEL_LAYER_BACK2:
+                tile_color = palette[5];
+                break;
+            }
+
+            tile_color.a = tile_alpha;
+            set_tile_batch_color(tile_color);
         }
+        
 
         // We draw from the top-to-bottom, left-to-right, so that elements
         // in the level editor stack up nicely on top of each other.
@@ -1062,6 +1114,7 @@ FILDEF void do_level_editor ()
     }
 
     flush_batched_tile();
+    set_palettization(false);
 
     // Draw either a ghosted version of the currently selected tile or what is
     // currently in the clipboard. What we draw depends on if the key modifier

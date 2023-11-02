@@ -104,6 +104,8 @@ FILDEF void set_text_batch_color   (vec4 color);
 FILDEF void draw_batched_tile  (float x, float y, const quad* clip);
 FILDEF void draw_batched_text  (float x, float y, std::string text);
 
+FILDEF void set_palettization (bool r);
+
 FILDEF void flush_batched_tile ();
 FILDEF void flush_batched_text ();
 

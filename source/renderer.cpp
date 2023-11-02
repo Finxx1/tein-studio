@@ -1,3 +1,4 @@
+#include "renderer.hpp"
 GLOBAL SDL_GLContext gl_context;
 GLOBAL Window*    render_target;
 
@@ -8,6 +9,7 @@ GLOBAL std::stack<quad> scissor_stack;
 
 GLOBAL Shader untextured_shader;
 GLOBAL Shader   textured_shader;
+GLOBAL Shader    palette_shader;
 GLOBAL Shader       text_shader;
 
 GLOBAL float texture_draw_scale_x;
@@ -29,6 +31,9 @@ GLOBAL Texture* tile_texture;
 // Batched text rendering.
 GLOBAL vec4     text_draw_color;
 GLOBAL Font*    text_font;
+
+// HACK: Palettized rendering set from level editor. Not the right place for this!
+GLOBAL bool use_palette_shader;
 
 FILDEF quad internal__convert_viewport (quad viewport)
 {
@@ -86,6 +91,8 @@ FILDEF bool init_renderer ()
     texture_draw_scale_y = 1;
     font_draw_scale      = 1;
 
+    use_palette_shader = false;
+
     glGetFloatv(GL_MAX_TEXTURE_SIZE, &max_gl_texture_size);
 
     untextured_shader = load_shader_resource("shaders/300/untextured.shader");
@@ -108,6 +115,14 @@ FILDEF bool init_renderer ()
     if (!text_shader)
     {
         LOG_ERROR(ERR_MED, "Failed to load the text shader!");
+    }
+
+    // Carry on if palette shader can't be loaded. Palettized mode won't
+    // work though. So sad.
+    palette_shader = load_shader_resource("shaders/300/palette.shader");
+    if (!palette_shader)
+    {
+        LOG_ERROR(ERR_MED, "Failed to load the palette shader!");
     }
 
     // By default we render to the main window.
@@ -135,6 +150,7 @@ FILDEF void quit_renderer ()
 
     free_shader(untextured_shader);
     free_shader(  textured_shader);
+    free_shader(   palette_shader);
     free_shader(      text_shader);
 
     SDL_GL_DeleteContext(gl_context);
@@ -715,12 +731,20 @@ FILDEF void draw_batched_text (float x, float y, std::string text)
     }
 }
 
+FILDEF void set_palettization (bool r)
+{
+    use_palette_shader = r;
+}
+
 FILDEF void flush_batched_tile ()
 {
     glBindTexture(GL_TEXTURE_2D, tile_texture->handle);
     glEnable(GL_TEXTURE_2D);
 
-    glUseProgram(textured_shader);
+    if (use_palette_shader)
+        glUseProgram(palette_shader);
+    else
+        glUseProgram(textured_shader);
 
     draw_vertex_buffer(tile_buffer, Buffer_Mode::TRIANGLES);
     clear_vertex_buffer(tile_buffer);

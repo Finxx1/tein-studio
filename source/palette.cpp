@@ -9,6 +9,7 @@ GLOBAL constexpr const char* GAME_GPAK    = "game.gpak";
 GLOBAL constexpr int PALETTE_MAIN_COLUMN = 5;
 
 GLOBAL std::map<std::string, vec4> palette_main_lookup;
+GLOBAL std::map<std::string, Palette> palette_secondary_lookup;
 
 FILDEF void init_palette_lookup ()
 {
@@ -72,7 +73,7 @@ FILDEF void init_palette_lookup ()
         std::string mname(path + MERGE_FILE);
         if (merge_data.empty() && does_file_exist(mname))
         {
-            LOG_DEBUG("Mege file found!");
+            LOG_DEBUG("Merge file found!");
             merge_data = read_binary_file(mname);
         }
 
@@ -141,6 +142,7 @@ FILDEF void init_palette_lookup ()
         if (!palette_data.empty() && !tileset_data.empty() && !append_data.empty() && !patch_data.empty() && !merge_data.empty())
         {
             palette_main_lookup.clear();
+            palette_secondary_lookup.clear();
             break;
         }
     }
@@ -210,6 +212,19 @@ FILDEF void init_palette_lookup ()
                     float a = CAST(float, palette[index+3]) / 255;
 
                     palette_main_lookup.insert(std::pair<std::string, vec4>(name, vec4(r,g,b,a)));
+                    Palette palette_secondary;
+
+                    for (int i=0; i<16; ++i)
+                    {
+                        float r = CAST(float, palette[i * BPP + index + 0]) / 255;
+                        float g = CAST(float, palette[i * BPP + index + 1]) / 255;
+                        float b = CAST(float, palette[i * BPP + index + 2]) / 255;
+                        float a = CAST(float, palette[i * BPP + index + 3]) / 255;
+
+                        palette_secondary.push_back(vec4(r, g, b, a));
+                    }
+
+                    palette_secondary_lookup.insert(std::pair<std::string, Palette>(name, palette_secondary));
                 }
             }
         }

@@ -16,6 +16,7 @@ GLOBAL constexpr const char* TB_INFO_DESELECT = "Deselect: Removes the current b
 GLOBAL constexpr const char* TB_INFO_CLEAR    = "Clear Selection: Deletes everything inside the current selection.";
 GLOBAL constexpr const char* TB_INFO_ENTITY   = "Large Entities: Toggles entity graphics to represent their in-game size.";
 GLOBAL constexpr const char* TB_INFO_GUIDES   = "Entity Guides: Toggles guides to showcase entity placement and bounds.";
+GLOBAL constexpr const char* TB_INFO_PALETTE  = "Palette: Toggles tile graphics to reflect their color in the palette.";
 
 GLOBAL constexpr float TOTAL_TOOLBAR_LVL_BUTTONS = 18;
 GLOBAL constexpr float TOTAL_TOOLBAR_MAP_BUTTONS =  1;
@@ -47,6 +48,7 @@ FILDEF void internal__do_level_toolbar ()
     UI_Flag copy_flags     = UI_NONE;
     UI_Flag deselect_flags = UI_NONE;
     UI_Flag clear_flags    = UI_NONE;
+    UI_Flag palette_flags  = UI_NONE;
 
     brush_flags    = (level_editor.tool_type == Tool_Type::BRUSH)  ? UI_NONE : UI_INACTIVE;
     fill_flags     = (level_editor.tool_type == Tool_Type::FILL)   ? UI_NONE : UI_INACTIVE;
@@ -60,6 +62,7 @@ FILDEF void internal__do_level_toolbar ()
     flip_v_flags   =                                                 UI_NONE;
     mirror_h_flags = (level_editor.mirror_h)                       ? UI_NONE : UI_INACTIVE;
     mirror_v_flags = (level_editor.mirror_v)                       ? UI_NONE : UI_INACTIVE;
+    palette_flags  = (level_editor.palette)                        ? UI_NONE : UI_INACTIVE;
 
     guide_flags |= (level_editor.large_tiles) ? UI_NONE : UI_LOCKED;
 
@@ -93,6 +96,7 @@ FILDEF void internal__do_level_toolbar ()
     do_button_img(tb_reset_camera,       bw,bh, UI_NONE,         &CLIP_CAMERA,          TB_INFO_CAMERA,          KB_CAMERA_RESET,   "Reset Camera");
     do_button_img(tb_toggle_entity,      bw,bh, entity_flags,    &CLIP_ENTITY,          TB_INFO_ENTITY,          KB_TOGGLE_ENTITY,  "Toggle Large Entities");
     do_button_img(tb_toggle_guides,      bw,bh, guide_flags,     &CLIP_GUIDES,          TB_INFO_GUIDES,          KB_TOGGLE_GUIDES,  "Toggle Entity Guides");
+    do_button_img(tb_toggle_palette,     bw,bh, palette_flags,   &CLIP_PALETTE,         TB_INFO_PALETTE,         KB_TOGGLE_PALETTE, "Toggle Palette Coloring");
 
     // If not all buttons will fit on the screen we will double the width of the
     // toolbar and then place the buttons side-to-side instead of straight down.
@@ -351,4 +355,9 @@ FILDEF void tb_toggle_entity ()
 FILDEF void tb_toggle_guides ()
 {
     if (current_tab_is_level()) level_editor.entity_guides = !level_editor.entity_guides;
+}
+
+FILDEF void tb_toggle_palette ()
+{
+    if (current_tab_is_level()) level_editor.palette = !level_editor.palette;
 }

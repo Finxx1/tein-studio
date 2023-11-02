@@ -248,6 +248,7 @@ FILDEF void internal__load_editor_key_bindings (const GonObject& a, const GonObj
     internal__add_key_binding(a, b, KB_FLIP_V              , tb_flip_level_v            );
     internal__add_key_binding(a, b, KB_MIRROR_H_TOGGLE     , tb_toggle_mirror_h         );
     internal__add_key_binding(a, b, KB_MIRROR_V_TOGGLE     , tb_toggle_mirror_v         );
+    internal__add_key_binding(a, b, KB_TOGGLE_PALETTE      , tb_toggle_palette          );
     internal__add_key_binding(a, b, KB_GPAK_UNPACK         , hb_gpak_unpack             );
     internal__add_key_binding(a, b, KB_GPAK_PACK           , hb_gpak_pack               );
     internal__add_key_binding(a, b, KB_TOGGLE_ENTITY       , tb_toggle_entity           );
@@ -450,6 +451,7 @@ FILDEF void dump_editor_key_bindings ()
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_OPEN, get_key_binding_main_string(KB_LEVEL_OPEN).c_str(), get_key_binding_alt_string(KB_LEVEL_OPEN).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_SAVE, get_key_binding_main_string(KB_LEVEL_SAVE).c_str(), get_key_binding_alt_string(KB_LEVEL_SAVE).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_SAVE_AS, get_key_binding_main_string(KB_LEVEL_SAVE_AS).c_str(), get_key_binding_alt_string(KB_LEVEL_SAVE_AS).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_REFRESH, get_key_binding_main_string(KB_REFRESH).c_str(), get_key_binding_alt_string(KB_REFRESH).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_CLOSE, get_key_binding_main_string(KB_LEVEL_CLOSE).c_str(), get_key_binding_alt_string(KB_LEVEL_CLOSE).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_CLOSE_ALL, get_key_binding_main_string(KB_LEVEL_CLOSE_ALL).c_str(), get_key_binding_alt_string(KB_LEVEL_CLOSE_ALL).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_LEVEL_RESIZE, get_key_binding_main_string(KB_LEVEL_RESIZE).c_str(), get_key_binding_alt_string(KB_LEVEL_RESIZE).c_str());
@@ -472,6 +474,7 @@ FILDEF void dump_editor_key_bindings ()
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_FLIP_V, get_key_binding_main_string(KB_FLIP_V).c_str(), get_key_binding_alt_string(KB_FLIP_V).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_MIRROR_H_TOGGLE, get_key_binding_main_string(KB_MIRROR_H_TOGGLE).c_str(), get_key_binding_alt_string(KB_MIRROR_H_TOGGLE).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_MIRROR_V_TOGGLE, get_key_binding_main_string(KB_MIRROR_V_TOGGLE).c_str(), get_key_binding_alt_string(KB_MIRROR_V_TOGGLE).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_TOGGLE_PALETTE, get_key_binding_main_string(KB_TOGGLE_PALETTE).c_str(), get_key_binding_alt_string(KB_TOGGLE_PALETTE).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_GPAK_UNPACK, get_key_binding_main_string(KB_GPAK_UNPACK).c_str(), get_key_binding_alt_string(KB_GPAK_UNPACK).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_GPAK_PACK, get_key_binding_main_string(KB_GPAK_PACK).c_str(), get_key_binding_alt_string(KB_GPAK_PACK).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_TOGGLE_ENTITY, get_key_binding_main_string(KB_TOGGLE_ENTITY).c_str(), get_key_binding_alt_string(KB_TOGGLE_ENTITY).c_str());

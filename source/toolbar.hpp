@@ -26,3 +26,4 @@ FILDEF void tb_clear_select       ();
 FILDEF void tb_resize             ();
 FILDEF void tb_toggle_entity      ();
 FILDEF void tb_toggle_guides      ();
+FILDEF void tb_toggle_palette     ();
