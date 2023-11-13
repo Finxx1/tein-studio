@@ -1085,7 +1085,7 @@ FILDEF void do_level_editor ()
                 break;
             }
 
-            tile_color.a = tile_alpha;
+            tile_color.a = 1.0;
             set_tile_batch_color(tile_color);
         }
         

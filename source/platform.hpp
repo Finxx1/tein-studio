@@ -1,5 +1,7 @@
 #pragma once
 
+GLOBAL WNDPROC sdl_wndproc;
+
 //
 // Alert Prompt
 //
@@ -37,7 +39,7 @@ STDDEF Alert_Result show_alert (std::string title, std::string msg, Alert_Type t
 enum class Dialog_Type { LVL, CSV, LVL_CSV, GPAK, EXE };
 
 STDDEF std::vector<std::string> open_dialog (Dialog_Type type, bool multiselect = true);
-STDDEF std::string              save_dialog (Dialog_Type type);
+STDDEF std::string              save_dialog (Dialog_Type type                         );
 STDDEF std::vector<std::string> path_dialog (                  bool multiselect = true);
 
 //

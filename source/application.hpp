@@ -26,6 +26,8 @@ GLOBAL constexpr const char* LOGS_PATH = "logs/";
 GLOBAL SDL_Event main_event;
 GLOBAL bool main_running;
 
+GLOBAL constexpr const char* APP_CLASS = "TEINSTUDIO";
+
 FILDEF void init_application (int argc, char** argv);
 FILDEF void quit_application ();
 

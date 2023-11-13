@@ -115,6 +115,12 @@ FILDEF void init_application (int argc, char** argv)
         LOG_DEBUG("Executable Location: %s", get_executable_path().c_str());
         LOG_DEBUG("AppData Location: %s", get_appdata_path().c_str());
 
+        if (!is_first())
+        {
+            send_files_to_main_window(argc, argv);
+            exit(0);
+        }
+
         get_resource_location();
 
         setup_crash_handler();
@@ -161,8 +167,8 @@ FILDEF void init_application (int argc, char** argv)
         if (!load_editor_resources   ()) { LOG_ERROR(ERR_MAX, "Failed to load editor resources!"   ); return; }
         if (!init_tile_panel         ()) { LOG_ERROR(ERR_MAX, "Failed to setup the tile panel!"    ); return; }
 
-        init_layer_panel   ();
-        init_color_picker  ();
+        init_layer_panel ();
+        init_color_picker();
 
         init_editor(argc, argv);
 

@@ -273,6 +273,9 @@ FILDEF bool init_window ()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
 
+    SDL_UnregisterApp();
+    SDL_RegisterApp((char*)APP_CLASS, CS_OWNDC | CS_BYTEALIGNCLIENT, NULL);
+
     #if defined(BUILD_DEBUG)
     std::string main_title(format_string("[DEBUG] %s (v%d.%d.%d)", MAIN_WINDOW_TITLE, APP_VER_MAJOR,APP_VER_MINOR,APP_VER_PATCH));
     #else
@@ -285,6 +288,11 @@ FILDEF bool init_window ()
         LOG_ERROR(ERR_MAX, "Failed to create the main application window!");
         return false;
     }
+
+    SDL_UnregisterApp();
+    SDL_RegisterApp(NULL, 0, 0);
+
+    internal__hook(internal__win32_get_window_handle(get_window("Main").window));
 
     get_window("Main").close_callback = []()
     {

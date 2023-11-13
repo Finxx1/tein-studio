@@ -10,6 +10,76 @@
 // Alert Prompt
 //
 
+// https://stackoverflow.com/a/74999569
+FILDEF void internal__get_command_line_args(LPWSTR cmd, int* argc, char*** argv)
+{
+    // Get the command line arguments as wchar_t strings
+    wchar_t** wargv = CommandLineToArgvW(cmd, argc);
+    if (!wargv) { *argc = 0; *argv = NULL; return; }
+
+    // Count the number of bytes necessary to store the UTF-8 versions of those strings
+    int n = 0;
+    for (int i = 0; i < *argc; i++)
+        n += WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, NULL, 0, NULL, NULL) + 1;
+
+    // Allocate the argv[] array + all the UTF-8 strings
+    *argv = (char**)malloc((*argc + 1) * sizeof(char*) + n + 1);
+    if (!*argv) { *argc = 0; return; }
+
+    // Convert all wargv[] --> argv[]
+    char* arg = (char*)&((*argv)[*argc + 1]);
+    for (int i = 0; i < *argc; i++)
+    {
+        (*argv)[i] = arg;
+        arg += WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, arg, n, NULL, NULL) + 1;
+    }
+    (*argv)[*argc] = NULL;
+}
+
+LRESULT CALLBACK internal__win32_wnd_proc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (uMsg == WM_COPYDATA)
+    {
+        COPYDATASTRUCT* ds = CAST(COPYDATASTRUCT*, lParam);
+
+        // Load the files that have been passed in as command line arguments.
+        int argc;
+        char** argv;
+        internal__get_command_line_args((LPWSTR)ds->lpData, &argc, &argv);
+
+        if (argc > 1)
+        {
+            for (int i = 1; i < argc; ++i)
+            {
+                if (!does_file_exist(argv[i]))
+                {
+                    std::string msg(format_string("Could not find file '%s'!", argv[i]));
+                    show_alert("Error", msg, ALERT_TYPE_ERROR, ALERT_BUTTON_OK, "Main");
+                }
+                else
+                {
+                    std::string file(argv[i]);
+                    std::string ext(file.substr(file.find_last_of(".")));
+                    Tab* tab = NULL;
+                    if      (ext == ".lvl") level_drop_file(tab, file);
+                    else if (ext == ".csv") map_drop_file  (tab, file);
+                }
+            }
+        }
+
+        free(argv);
+        InvalidateRect(hWnd, NULL, FALSE);
+    }
+
+    // NOTE: SDL uses UNICODE internally.
+    return CallWindowProcW(sdl_wndproc, hWnd, uMsg, wParam, lParam);
+}
+
+FILDEF void internal__hook (HWND hWnd)
+{
+    sdl_wndproc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)internal__win32_wnd_proc);
+}
+
 FILDEF HWND internal__win32_get_window_handle (SDL_Window* window)
 {
     SDL_SysWMinfo win_info = {};
@@ -397,4 +467,30 @@ FILDEF void load_webpage (std::string url)
 FILDEF void open_folder (std::string path_name)
 {
     ShellExecuteA(NULL, "explore", path_name.c_str(), NULL, NULL, SW_SHOW);
+}
+
+FILDEF bool is_first()
+{
+    CreateMutexA(NULL, false, "tein-studio-instance");
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+        return false;
+    return true;
+}
+
+FILDEF void send_files_to_main_window(int argc, char** argv)
+{
+    HWND hwnd = FindWindowExA(NULL, NULL, APP_CLASS, NULL);
+
+    if (!hwnd) return;
+
+    LPWSTR str = GetCommandLineW();
+
+    COPYDATASTRUCT ds;
+    ds.cbData = lstrlenW(str) * 2 + 1;
+    ds.lpData = str;
+    ds.dwData = 1;
+
+    SendMessageW(hwnd, WM_COPYDATA, (WPARAM)GetModuleHandle(NULL), (LPARAM)&ds);
+
+    return;
 }
