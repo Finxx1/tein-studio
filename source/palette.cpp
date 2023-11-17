@@ -214,12 +214,14 @@ FILDEF void init_palette_lookup ()
                     palette_main_lookup.insert(std::pair<std::string, vec4>(name, vec4(r,g,b,a)));
                     Palette palette_secondary;
 
+                    index -= PALETTE_MAIN_COLUMN * BPP;
+
                     for (int i=0; i<16; ++i)
                     {
-                        float r = CAST(float, palette[i * BPP + index + 0]) / 255;
-                        float g = CAST(float, palette[i * BPP + index + 1]) / 255;
-                        float b = CAST(float, palette[i * BPP + index + 2]) / 255;
-                        float a = CAST(float, palette[i * BPP + index + 3]) / 255;
+                        r = CAST(float, palette[i * BPP + index + 0]) / 255;
+                        g = CAST(float, palette[i * BPP + index + 1]) / 255;
+                        b = CAST(float, palette[i * BPP + index + 2]) / 255;
+                        a = CAST(float, palette[i * BPP + index + 3]) / 255;
 
                         palette_secondary.push_back(vec4(r, g, b, a));
                     }
