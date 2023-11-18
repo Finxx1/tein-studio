@@ -1,8 +1,4 @@
-*.user
-*.filters
-
 binary/win32/*
 object/win32/*
-x64
 
 .vs/

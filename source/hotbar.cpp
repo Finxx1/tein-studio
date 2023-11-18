@@ -437,7 +437,7 @@ FILDEF void hb_help ()
 
 FILDEF void hb_bug_report ()
 {
-    load_webpage("https://itch.io/t/822898/bug-reports");
+    load_webpage("https://github.com/Finxx1/tein-studio/issues");
 }
 
 FILDEF void hb_backups ()

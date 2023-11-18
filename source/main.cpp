@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 #include "main.hpp"
 
 int main (int argc, char** argv)

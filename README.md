@@ -1,21 +1,21 @@
-# The End is Nigh: Editor
+# The End is Nigh: Studio
 
 An unofficial level and world map editor for the game **[The End is Nigh](https://store.steampowered.com/app/583470/The_End_Is_Nigh/)**, by Edmund McMillen and Tyler Glaiel.
 
-![Screenshot of The Editor in Use](https://img.itch.zone/aW1hZ2UvNjYyODkxLzM1NzgwNzMucG5n/original/UhhS%2Bm.png)
+![Screenshot of The Editor in Use](dev/editor_ex.png)
 
-The editor provides the necessary tools for modders to unpack the game's resources, modify and create new levels, and modify the world map, all with an easy-to-use interface.
+The editor provides the necessary tools for modders to unpack the game's resources, modify and create new levels, and modify the world map, all with an
+easy-to-use interface.
 
 ## Building
 
-For those interested in contributing to the editor's development, building the executable is as simple as running one of the available build scripts.
-All of the code dependencies and external third party libraries have been included within this repository, so there is no need to fetch them manually.
+For those interested in contributing to the editor's development, building the executable is as simple as running one of the available build scripts, or
+using a provided Visual Studio 2022 project file.
 
 ### Windows
 
-A version of Visual Studio with C++17 support is required. To build the editor run the `build\win32\build.bat` script. To modify build parameters and
-flags open the `build\win32\config.bat` script and tweak the values to change how the editor is built (e.g. release or debug mode, 32-bit or 64-bit).
-There are also Visual Studio 2022 project files, although they should not be used to build final releases.
+You can use the Visual Studio 2022 project files, although they should only be used for debugging. For final releases, run build\win32\release. Yes, the
+open file dialog is broken when debugging with Visual Studio, but it should work outside of debugging.
 
 ## License
 

@@ -2,9 +2,9 @@
 
 GLOBAL constexpr const char* APP_TITLE = "The End is Nigh: Studio";
 
-GLOBAL constexpr int APP_VER_MAJOR = 2;
-GLOBAL constexpr int APP_VER_MINOR = 0;
-GLOBAL constexpr int APP_VER_PATCH = 1;
+GLOBAL constexpr int APP_VER_MAJOR = 1;
+GLOBAL constexpr int APP_VER_MINOR = 2;
+GLOBAL constexpr int APP_VER_PATCH = 0;
 
 #if defined(BUILD_DEBUG)
 GLOBAL constexpr const char* APP_BUILD = "Debug";
