@@ -465,7 +465,7 @@ FILDEF void internal__handle_select ()
 
 FILDEF void internal__handle_current_tool ()
 {
-    // Don't need to do anything, the user isn't using the tool right now!
+    // Don't need to do anything, the user isn't using a tool right now!
     if (level_editor.tool_state == Tool_State::IDLE) return;
 
     switch (level_editor.tool_type)
@@ -665,8 +665,6 @@ FILDEF void internal__draw_clipboard (UI_Dir xdir, UI_Dir ydir)
     set_tile_batch_texture(atlas.texture);
     set_tile_batch_color(vec4(1,1,1,GHOSTED_CURSOR_ALPHA));
 
-    // Stops us from drawing multiple copies of a tile where clipboards overlap.
-    std::array<std::map<size_t, bool>, LEVEL_LAYER_TOTAL> tile_space_occupied;
     for (auto& clipboard: level_editor.clipboard)
     {
         const Tab& tab = get_current_tab();
@@ -707,21 +705,17 @@ FILDEF void internal__draw_clipboard (UI_Dir xdir, UI_Dir ydir)
             else if (ydir == UI_DIR_DOWN ) ty = gy+gh-DEFAULT_TILE_SIZE;
 
             const auto& layer = clipboard.data[i];
-            auto& layer_space_occupied = tile_space_occupied[i];
 
             for (size_t j=0; j<layer.size(); ++j)
             {
                 Tile_ID id = layer[j];
                 if (id) // No point drawing empty tiles...
                 {
-                    if (!layer_space_occupied.count(j))
-                    {
-                        if (xdir == UI_DIR_LEFT) id = get_tile_horizontal_flip(id);
-                        if (ydir == UI_DIR_DOWN) id = get_tile_vertical_flip(id);
+                    if (xdir == UI_DIR_LEFT) id = get_tile_horizontal_flip(id);
+                    if (ydir == UI_DIR_DOWN) id = get_tile_vertical_flip(id);
 
-                        draw_batched_tile(tx+DEFAULT_TILE_SIZE_HALF, ty+DEFAULT_TILE_SIZE_HALF, &internal__get_tile_graphic_clip(atlas, id));
-                        layer_space_occupied.insert(std::pair<size_t, bool>(j, true));
-                    }
+                    draw_batched_tile(tx+DEFAULT_TILE_SIZE_HALF, ty+DEFAULT_TILE_SIZE_HALF, &internal__get_tile_graphic_clip(atlas, id));
+                    
                 }
 
                 // Move to the next tile based on our direction.
