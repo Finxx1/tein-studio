@@ -69,6 +69,7 @@ LRESULT CALLBACK internal__win32_wnd_proc (HWND hWnd, UINT uMsg, WPARAM wParam, 
 
         free(argv);
         InvalidateRect(hWnd, NULL, FALSE);
+        SetForegroundWindow(hWnd);
     }
 
     // NOTE: SDL uses UNICODE internally.
