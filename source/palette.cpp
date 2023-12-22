@@ -25,11 +25,12 @@ FILDEF void init_palette_lookup ()
 
     // In order of priority of where we want to search.
     std::vector<std::string> paths;
+    paths.push_back(PATH_SDK); // prioritize SDK path over all else, in case user has EXE in game directory.
     paths.push_back(make_path_absolute(""));
+
     for (auto& drive: drives)
     {
         std::string drive_letter(1, drive);
-        paths.push_back(PATH_SDK); 
         paths.push_back(drive_letter + PATH_STEAM_X86);
         paths.push_back(drive_letter + PATH_STEAM_X64);
         paths.push_back(drive_letter + PATH_EPIC_X86);
