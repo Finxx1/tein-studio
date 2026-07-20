@@ -175,6 +175,25 @@ STDDEF bool create_window (std::string name, std::string title, int x, int y, in
         LOG_ERROR(ERR_MIN, "Failed to create window! (%s)", SDL_GetError());
         return false;
     }
+	
+	// SDL for some reason doesn't show the icon in the resource section, so
+	// we have to manually set it.
+	HINSTANCE handle = GetModuleHandle(nullptr);
+    HICON icon = LoadIcon(handle, MAKEINTRESOURCE(100));
+    if (icon == nullptr)
+	{
+		LOG_ERROR(ERR_MIN, "Failed to load window icon!");
+	}
+	else
+	{
+        SDL_SysWMinfo wminfo;
+        SDL_VERSION(&wminfo.version);
+        if (SDL_GetWindowWMInfo(window.window, &wminfo))
+		{
+            HWND hwnd = wminfo.info.win.window;
+            SetClassLongPtr(hwnd, GCLP_HICON, CAST(LONG_PTR, icon));
+        }
+    }
 
     window.id = SDL_GetWindowID(window.window);
     if (!window.id)
@@ -273,9 +292,6 @@ FILDEF bool init_window ()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0);
 
-    SDL_UnregisterApp();
-    SDL_RegisterApp((char*)APP_CLASS, CS_OWNDC | CS_BYTEALIGNCLIENT, NULL);
-
     #if defined(BUILD_DEBUG)
     std::string main_title(format_string("[DEBUG] %s (v%d.%d.%d)", MAIN_WINDOW_TITLE, APP_VER_MAJOR,APP_VER_MINOR,APP_VER_PATCH));
     #else
@@ -288,11 +304,6 @@ FILDEF bool init_window ()
         LOG_ERROR(ERR_MAX, "Failed to create the main application window!");
         return false;
     }
-
-    SDL_UnregisterApp();
-    SDL_RegisterApp(NULL, 0, 0);
-
-    internal__hook(internal__win32_get_window_handle(get_window("Main").window));
 
     get_window("Main").close_callback = []()
     {

@@ -115,10 +115,19 @@ FILDEF std::vector<u8> load_binary_resource (std::string file_name)
 
 FILDEF SDL_Surface* load_surface_resource (std::string file_name)
 {
-    std::string abs_file_name(build_resource_string(file_name));
-    if (does_file_exist(abs_file_name)) return SDL_LoadBMP(abs_file_name.c_str());
-    else return SDL_LoadBMP_RW(SDL_RWFromConstMem(&gpak_resource_lookup[file_name][0],
-        CAST(int, gpak_resource_lookup[file_name].size())), true);
+    std::vector<u8> buffer = load_binary_resource(file_name);
+	
+    int w, h, bpp;
+    u8* raw_data = stbi_load_from_memory(buffer.data(), buffer.size(), &w, &h, &bpp, 4);
+    if (!raw_data)
+    {
+        LOG_ERROR(ERR_MIN, "Failed to load texture from data!");
+        return nullptr;
+    }
+	
+	SDL_Surface* r = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_ABGR8888);
+	if (r) memcpy(r->pixels, raw_data, w * h * 4);
+	return r;
 }
 
 FILDEF std::string load_string_resource (std::string file_name)

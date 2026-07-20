@@ -82,6 +82,10 @@ FILDEF void internal__dump_debug_application_info ()
     }
 }
 
+FILDEF void internal__gon_error_callback(const std::string& err) {
+	LOG_ERROR(ERR_MED, "%s", err.c_str());
+}
+
 FILDEF void init_application (int argc, char** argv)
 {
     {
@@ -111,6 +115,10 @@ FILDEF void init_application (int argc, char** argv)
             LOG_ERROR(ERR_MAX, "Failed to initialize FreeType2!");
             return;
         }
+		
+		// GON by default crashes the entire program on errors, but we don't
+		// consider GON errors to be fatal.
+		GonObject::ErrorCallback = internal__gon_error_callback;
 
         LOG_DEBUG("Executable Location: %s", get_executable_path().c_str());
         LOG_DEBUG("AppData Location: %s", get_appdata_path().c_str());
@@ -137,7 +145,7 @@ FILDEF void init_application (int argc, char** argv)
         if (!create_window("ColorPicker", "Color Picker"    , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 250,302, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create color picker window!"); return; }
         if (!create_window("New"        , "New"             , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 230,126, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create new window!"         ); return; }
         if (!create_window("Resize"     , "Resize"          , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 230,200, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create resize window!"      ); return; }
-        if (!create_window("About"      , "About"           , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440, 96, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create about window!"       ); return; }
+        if (!create_window("About"      , "About"           , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440,114, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create about window!"       ); return; }
         if (!create_window("Unpack"     , "Unpack"          , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 360, 80, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create GPAK unpack window!" ); return; }
         if (!create_window("Pack"       , "Pack"            , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 360, 80, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create GPAK unpack window!" ); return; }
         if (!create_window("LoadGame"   , "Locate Game"     , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440,100, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create path window!"        ); return; }
