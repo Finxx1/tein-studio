@@ -225,11 +225,14 @@ INLDEF float get_text_width (const Font& fnt, std::string text)
     int i = 0;
     int p = 0;
 
-    for (const char* c=text.c_str(); *c; ++c)
+    for (const char* pc=text.c_str(); *pc; ++pc)
     {
-        switch (*c)
+		char c = *pc;
+		if (c < 0 || c >= TOTAL_GLYPH_COUNT) c = 0;
+		
+        switch (c)
         {
-            default:     { width += get_glyph_advance(fnt, *c, i, p); } break;
+            default:     { width += get_glyph_advance(fnt, c, i, p); } break;
             case ('\t'): { width += get_font_tab_width(fnt);          } break;
             case ('\n'):
             {

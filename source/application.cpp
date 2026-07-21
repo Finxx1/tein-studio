@@ -99,6 +99,10 @@ FILDEF void init_application (int argc, char** argv)
         LOG_DEBUG("[[Initialization]]");
         LOG_DEBUG("%s v%d.%d.%d (%s) - %s", APP_TITLE, APP_VER_MAJOR,APP_VER_MINOR,APP_VER_PATCH, APP_BUILD, APP_ARCH);
 
+		// This must be called before we initialize SDL. We do this so we can
+		// easily find our window with FindWindowEx.
+		SDL_RegisterApp(APP_CLASS, CS_BYTEALIGNCLIENT | CS_OWNDC, nullptr);
+
         u32 sdl_flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
         if (SDL_Init(sdl_flags) == 0)
             LOG_DEBUG("Initialized SDL v%d.%d.%d", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
@@ -128,6 +132,9 @@ FILDEF void init_application (int argc, char** argv)
             send_files_to_main_window(argc, argv);
             exit(0);
         }
+		
+		SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+		SDL_AddEventWatch(handle_copydata_events, nullptr);
 
         get_resource_location();
 

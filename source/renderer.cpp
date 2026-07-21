@@ -526,13 +526,14 @@ STDDEF void draw_text (const Font& fnt, float x, float y, std::string text)
     const Texture& cache = fnt.cache.at(fnt.current_pt_size);
     auto& glyphs = fnt.glyphs.at(fnt.current_pt_size);
 
-    for (const char* c=text.c_str(); *c; ++c)
+    for (const char* pc=text.c_str(); *pc; ++pc)
     {
-        if (*c < 0 || *c >= TOTAL_GLYPH_COUNT) continue;
+		char c = *pc;
+        if (c < 0 || c >= TOTAL_GLYPH_COUNT) c = 0;
 
-        cx += (get_font_kerning(fnt, *c, index, prev_index) * scale);
+        cx += (get_font_kerning(fnt, c, index, prev_index) * scale);
 
-        switch (*c)
+        switch (c)
         {
             case ('\r'): cx = x;                                                       break;
             case ('\n'): cx = x, cy += (fnt.line_gap.at(fnt.current_pt_size) * scale); break;
@@ -540,7 +541,7 @@ STDDEF void draw_text (const Font& fnt, float x, float y, std::string text)
 
             default:
             {
-                const Font_Glyph& glyph = glyphs.at(*c);
+                const Font_Glyph& glyph = glyphs.at(c);
                 const quad& clip = glyph.bounds;
 
                 float bearing_x = glyph.bearing.x * scale;
@@ -683,13 +684,14 @@ FILDEF void draw_batched_text (float x, float y, std::string text)
     const auto& glyphs   = fnt.glyphs  .at(fnt.current_pt_size);
     const auto& line_gap = fnt.line_gap.at(fnt.current_pt_size);
 
-    for (const char* c=text.c_str(); *c; ++c)
+    for (const char* pc=text.c_str(); *pc; ++pc)
     {
-        if (*c < 0 || *c >= TOTAL_GLYPH_COUNT) continue;
+		char c = *pc;
+        if (c < 0 || c >= TOTAL_GLYPH_COUNT) c = 0;
 
-        cx += (get_font_kerning(fnt, *c, index, prev_index) * scale);
+        cx += (get_font_kerning(fnt, c, index, prev_index) * scale);
 
-        switch (*c)
+        switch (c)
         {
             case ('\r'): cx = x;                                  break;
             case ('\n'): cx = x, cy += (line_gap * scale);        break;
@@ -697,7 +699,7 @@ FILDEF void draw_batched_text (float x, float y, std::string text)
 
             default:
             {
-                const Font_Glyph& glyph = glyphs.at(*c);
+                const Font_Glyph& glyph = glyphs.at(c);
                 const quad& clip = glyph.bounds;
 
                 float bearing_x = glyph.bearing.x * scale;

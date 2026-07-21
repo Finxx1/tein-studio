@@ -175,25 +175,6 @@ STDDEF bool create_window (std::string name, std::string title, int x, int y, in
         LOG_ERROR(ERR_MIN, "Failed to create window! (%s)", SDL_GetError());
         return false;
     }
-	
-	// SDL for some reason doesn't show the icon in the resource section, so
-	// we have to manually set it.
-	HINSTANCE handle = GetModuleHandle(nullptr);
-    HICON icon = LoadIcon(handle, MAKEINTRESOURCE(100));
-    if (icon == nullptr)
-	{
-		LOG_ERROR(ERR_MIN, "Failed to load window icon!");
-	}
-	else
-	{
-        SDL_SysWMinfo wminfo;
-        SDL_VERSION(&wminfo.version);
-        if (SDL_GetWindowWMInfo(window.window, &wminfo))
-		{
-            HWND hwnd = wminfo.info.win.window;
-            SetClassLongPtr(hwnd, GCLP_HICON, CAST(LONG_PTR, icon));
-        }
-    }
 
     window.id = SDL_GetWindowID(window.window);
     if (!window.id)

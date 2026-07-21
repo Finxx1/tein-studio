@@ -10,77 +10,6 @@
 // Alert Prompt
 //
 
-// https://stackoverflow.com/a/74999569
-FILDEF void internal__get_command_line_args(LPWSTR cmd, int* argc, char*** argv)
-{
-    // Get the command line arguments as wchar_t strings
-    wchar_t** wargv = CommandLineToArgvW(cmd, argc);
-    if (!wargv) { *argc = 0; *argv = NULL; return; }
-
-    // Count the number of bytes necessary to store the UTF-8 versions of those strings
-    int n = 0;
-    for (int i = 0; i < *argc; i++)
-        n += WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, NULL, 0, NULL, NULL) + 1;
-
-    // Allocate the argv[] array + all the UTF-8 strings
-    *argv = (char**)malloc((*argc + 1) * sizeof(char*) + n + 1);
-    if (!*argv) { *argc = 0; return; }
-
-    // Convert all wargv[] --> argv[]
-    char* arg = (char*)&((*argv)[*argc + 1]);
-    for (int i = 0; i < *argc; i++)
-    {
-        (*argv)[i] = arg;
-        arg += WideCharToMultiByte(CP_UTF8, 0, wargv[i], -1, arg, n, NULL, NULL) + 1;
-    }
-    (*argv)[*argc] = NULL;
-}
-
-LRESULT CALLBACK internal__win32_wnd_proc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    if (uMsg == WM_COPYDATA)
-    {
-        COPYDATASTRUCT* ds = CAST(COPYDATASTRUCT*, lParam);
-
-        // Load the files that have been passed in as command line arguments.
-        int argc;
-        char** argv;
-        internal__get_command_line_args((LPWSTR)ds->lpData, &argc, &argv);
-
-        if (argc > 1)
-        {
-            for (int i = 1; i < argc; ++i)
-            {
-                if (!does_file_exist(argv[i]))
-                {
-                    std::string msg(format_string("Could not find file '%s'!", argv[i]));
-                    show_alert("Error", msg, ALERT_TYPE_ERROR, ALERT_BUTTON_OK, "Main");
-                }
-                else
-                {
-                    std::string file(argv[i]);
-                    std::string ext(file.substr(file.find_last_of(".")));
-                    Tab* tab = NULL;
-                    if      (ext == ".lvl") level_drop_file(tab, file);
-                    else if (ext == ".csv") map_drop_file  (tab, file);
-                }
-            }
-        }
-
-        free(argv);
-        InvalidateRect(hWnd, NULL, FALSE);
-        SetForegroundWindow(hWnd);
-    }
-
-    // NOTE: SDL uses UNICODE internally.
-    return CallWindowProcW(sdl_wndproc, hWnd, uMsg, wParam, lParam);
-}
-
-FILDEF void internal__hook (HWND hWnd)
-{
-    sdl_wndproc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)internal__win32_wnd_proc);
-}
-
 FILDEF HWND internal__win32_get_window_handle (SDL_Window* window)
 {
     SDL_SysWMinfo win_info = {};
@@ -478,20 +407,110 @@ FILDEF bool is_first()
     return true;
 }
 
+FILDEF HWND internal__win32_make_dummy_window() {
+	WNDCLASSA wc{};
+	wc.lpfnWndProc = DefWindowProcA;
+	wc.hInstance = GetModuleHandle(nullptr);
+	wc.lpszClassName = "dummy";
+
+	RegisterClassA(&wc);
+	
+	return CreateWindowA("dummy", "", 0, 0, 0, 0, 0, nullptr, nullptr, wc.hInstance, nullptr);
+}
+
+STDDEF int SDLCALL handle_copydata_events(void* userdata, SDL_Event* event)
+{
+	if (event == nullptr)
+	{
+		return 1;
+	}
+	
+	if (event->type != SDL_SYSWMEVENT)
+	{
+		return 1;
+	}
+	
+	SDL_SysWMmsg msg = *event->syswm.msg;
+	if (msg.msg.win.msg == WM_COPYDATA)
+	{
+		COPYDATASTRUCT* cds = CAST(COPYDATASTRUCT*, msg.msg.win.lParam);
+		if (cds->dwData != 1234 || cds->cbData < 8) {
+			// Malformed packet.
+			LOG_ERROR(ERR_MIN, "Malformed packet received");
+			return 1;
+		}
+		
+		LOG_DEBUG("Received packet of size %zu", cds->cbData);
+		
+		u8* data = CAST(u8*, cds->lpData);
+		
+		u64 size = *(CAST(u64*, data));
+		
+		std::vector<std::string> files;
+		size_t offset = 8;
+		for (size_t i = 0; i < size; i++) {
+			std::string s(CAST(char*, data + offset));
+			LOG_DEBUG("'%s'", s.c_str());
+			files.push_back(make_path_absolute(s));
+			offset += s.size() + 1;
+		}
+		
+		for (size_t i = 0; i < files.size(); i++) {
+			if (!does_file_exist(files[i]))
+            {
+                std::string msg(format_string("Could not find file '%s'!", files[i].c_str()));
+                show_alert("Error", msg, ALERT_TYPE_ERROR, ALERT_BUTTON_OK, "Main");
+            }
+			else
+			{
+				Tab* tab = NULL;
+				std::string ext(files[i].substr(files[i].find_last_of(".")));
+				if      (ext == ".lvl") level_drop_file(tab, files[i]);
+				else if (ext == ".csv") map_drop_file  (tab, files[i]);
+			}
+		}
+		
+		SDL_RaiseWindow(get_window("Main").window);
+	}
+	
+	return 1;
+}
+
 FILDEF void send_files_to_main_window(int argc, char** argv)
 {
-    HWND hwnd = FindWindowExA(NULL, NULL, APP_CLASS, NULL);
-
+    size_t payload_size = 8;
+	for (size_t i = 1; i < argc; i++) {
+		payload_size += std::strlen(argv[i]) + 1;
+	}
+	
+	u8* payload = new u8[payload_size];
+	
+	u64 size = argc - 1;
+	std::memcpy(payload, &size, 8);
+	
+	size_t offset = 8;
+	for (size_t i = 1; i < argc; i++) {
+		size_t len = std::strlen(argv[i]) + 1;
+		std::memcpy(payload + offset, argv[i], len);
+		offset += len;
+	}
+	
+	HWND hwnd = FindWindowExA(NULL, NULL, APP_CLASS, NULL);
     if (!hwnd) return;
 
-    LPWSTR str = GetCommandLineW();
-
     COPYDATASTRUCT ds;
-    ds.cbData = lstrlenW(str) * 2 + 1;
-    ds.lpData = str;
-    ds.dwData = 1;
-
-    SendMessageW(hwnd, WM_COPYDATA, (WPARAM)GetModuleHandle(NULL), (LPARAM)&ds);
-
-    return;
+    ds.cbData = payload_size;
+    ds.lpData = payload;
+    ds.dwData = 1234;
+	
+	// SendMessage requires a source window, so we make an invisible dummy
+	// window to be the source.
+	HWND dummy = internal__win32_make_dummy_window();
+	if (!dummy) return;
+    SendMessage(hwnd, WM_COPYDATA, CAST(WPARAM, dummy), CAST(LPARAM, &ds));
+	
+	LOG_DEBUG("Sent payload of size %zu:", payload_size);
+	for (size_t i = 1; i < argc; i++) {
+		LOG_DEBUG("'%s'", argv[i]);
+	}
 }
