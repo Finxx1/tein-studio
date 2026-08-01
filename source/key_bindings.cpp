@@ -33,6 +33,7 @@ GLOBAL constexpr const char* KEY_BINDINGS_FALLBACK =
 "gpak_pack { main [\"Ctrl\" \"P\"] }\n"
 "toggle_large_entity { main [\"Ctrl\" \"L\"] }\n"
 "toggle_entity_guides { main [\"Ctrl\" \"G\"] }\n"
+"toggle_palette { main [\"P\"] }\n"
 "grid_toggle { main [\"G\"] }\n"
 "bounds_toggle { main [\"C\"] }\n"
 "layer_trans_toggle { main [\"L\"] }\n"

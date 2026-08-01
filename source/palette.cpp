@@ -48,31 +48,31 @@ FILDEF void init_palette_lookup ()
         LOG_DEBUG("Looking at: %s", path.c_str());
 
         std::string palname(path + PALETTE_FILE);
-        if (palette_data.empty() && does_file_exist(palname))
+        if (palette_data.empty() && does_file_exist(palname, false))
         {
             LOG_DEBUG("Palette file found!");
             palette_data = read_binary_file(palname);
         }
         std::string tname(path + TILESET_FILE);
-        if (tileset_data.empty() && does_file_exist(tname))
+        if (tileset_data.empty() && does_file_exist(tname, false))
         {
             LOG_DEBUG("Tileset file found!");
             tileset_data = read_binary_file(tname);
         }
         std::string aname(path + APPEND_FILE);
-        if (append_data.empty() && does_file_exist(aname))
+        if (append_data.empty() && does_file_exist(aname, false))
         {
             LOG_DEBUG("Append file found!");
             append_data = read_binary_file(aname);
         }
         std::string pname(path + PATCH_FILE);
-        if (patch_data.empty() && does_file_exist(pname))
+        if (patch_data.empty() && does_file_exist(pname, false))
         {
             LOG_DEBUG("Patch file found!");
             patch_data = read_binary_file(pname);
         }
         std::string mname(path + MERGE_FILE);
-        if (merge_data.empty() && does_file_exist(mname))
+        if (merge_data.empty() && does_file_exist(mname, false))
         {
             LOG_DEBUG("Merge file found!");
             merge_data = read_binary_file(mname);
@@ -83,7 +83,7 @@ FILDEF void init_palette_lookup ()
         {
             std::string file_name(path + "game.gpak");
             std::vector<GPAK_Entry> entries;
-            if (does_file_exist(file_name))
+            if (does_file_exist(file_name, false))
             {
                 LOG_DEBUG("GPAK file found!");
 

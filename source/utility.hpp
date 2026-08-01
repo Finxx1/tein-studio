@@ -97,8 +97,8 @@ STDDEF std::string     read_entire_file (std::string file_name);
 FILDEF size_t get_size_of_file (std::string file_name);
 FILDEF size_t get_size_of_file (FILE*       file);
 
-FILDEF bool does_file_exist (std::string file_name);
-FILDEF bool does_path_exist (std::string path_name);
+FILDEF bool does_file_exist (std::string file_name, bool log_error = true);
+FILDEF bool does_path_exist (std::string path_name, bool log_error = true);
 
 STDDEF void list_path_content (std::string path_name, std::vector<std::string>& content, bool recursive = false);
 STDDEF void list_path_files   (std::string path_name, std::vector<std::string>& files,   bool recursive = false);

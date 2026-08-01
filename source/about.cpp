@@ -45,7 +45,7 @@ FILDEF void handle_about_events ()
         if (main_event.key.keysym.sym == SDLK_ESCAPE ||
             main_event.key.keysym.sym == SDLK_RETURN)
         {
-            hide_window("Abour");
+            hide_window("About");
         }
     }
 }

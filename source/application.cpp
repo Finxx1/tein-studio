@@ -133,8 +133,16 @@ FILDEF void init_application (int argc, char** argv)
             exit(0);
         }
 		
+		// We need to handle this immediately or the data WILL ALMOST
+		// CERTAINLY become invalid.
 		SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 		SDL_AddEventWatch(handle_copydata_events, nullptr);
+		
+		// Leaving this enabled breaks the preferences menu since it reads
+		// the latest event outside of the event loop.
+		if (SDL_SetHint(SDL_HINT_POLL_SENTINEL, "0") != SDL_TRUE) {
+			LOG_ERROR(ERR_MAX, "Failed to disable SDL_POLLSENTINEL!");
+		}
 
         get_resource_location();
 
@@ -343,10 +351,35 @@ FILDEF void do_application ()
     }
 }
 
+FILDEF void internal__handle_event (SDL_Event* e)
+{
+	main_event = *e;
+	
+    #if defined(BUILD_DEBUG)
+    generate_texture_atlases();
+    pack_textures();
+    #endif
+
+    handle_window_events();
+    handle_key_binding_events();
+    handle_ui_events();
+    handle_tile_panel_events();
+    handle_tab_bar_events();
+    handle_editor_events();
+    handle_preferences_menu_events();
+    handle_color_picker_events();
+    handle_new_events();
+    handle_resize_events();
+    handle_tooltip_events();
+    handle_about_events();
+    handle_path_events();
+}
+
 FILDEF bool handle_application_events ()
 {
     // We wait for events so we don't waste CPU and GPU power.
-    if (!SDL_WaitEvent(&main_event))
+	SDL_Event e;
+    if (!SDL_WaitEvent(&e))
     {
         LOG_ERROR(ERR_MED, "Error waiting for events! (%s)", SDL_GetError());
         return false;
@@ -358,31 +391,20 @@ FILDEF bool handle_application_events ()
     // multiple events that may have occurred on the same frame.
     do
     {
-        if (main_event.type == SDL_QUIT)
+        // This event can overwrite some others and already has a watch.
+		if (e.type == SDL_SYSWMEVENT)
+		{
+			continue;
+		}
+		
+        if (e.type == SDL_QUIT)
         {
             main_running = false;
         }
-
-        #if defined(BUILD_DEBUG)
-        generate_texture_atlases();
-        pack_textures();
-        #endif
-
-        handle_window_events();
-        handle_key_binding_events();
-        handle_ui_events();
-        handle_tile_panel_events();
-        handle_tab_bar_events();
-        handle_editor_events();
-        handle_preferences_menu_events();
-        handle_color_picker_events();
-        handle_new_events();
-        handle_resize_events();
-        handle_tooltip_events();
-        handle_about_events();
-        handle_path_events();
+		
+		internal__handle_event(&e);
     }
-    while (SDL_PollEvent(&main_event));
+    while (SDL_PollEvent(&e));
 
     return true;
 }

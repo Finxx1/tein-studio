@@ -32,18 +32,18 @@ FILDEF size_t get_size_of_file (FILE* file)
     return size;
 }
 
-FILDEF bool does_file_exist (std::string file_name)
+FILDEF bool does_file_exist (std::string file_name, bool log_error)
 {
     bool result = false;
     try { result = std::filesystem::exists(file_name) && std::filesystem::is_regular_file(file_name); }
-    catch (std::filesystem::filesystem_error& e) { LOG_ERROR(ERR_MIN, "File System Error: %s", e.what()); }
+    catch (std::filesystem::filesystem_error& e) { if (log_error) LOG_ERROR(ERR_MIN, "File System Error: %s", e.what()); }
     return result;
 }
-FILDEF bool does_path_exist (std::string path_name)
+FILDEF bool does_path_exist (std::string path_name, bool log_error)
 {
     bool result = false;
     try { result = std::filesystem::exists(path_name) && std::filesystem::is_directory(path_name); }
-    catch (std::filesystem::filesystem_error& e) { LOG_ERROR(ERR_MIN, "File System Error: %s", e.what()); }
+    catch (std::filesystem::filesystem_error& e) { if (log_error) LOG_ERROR(ERR_MIN, "File System Error: %s", e.what()); }
     return result;
 }
 

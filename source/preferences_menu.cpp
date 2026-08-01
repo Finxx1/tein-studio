@@ -23,6 +23,7 @@ GLOBAL const std::map<std::string, const char*> PREFERENCES_HOTKEYS_NAMES
 { KB_LEVEL_OPEN,               "Load"                          },
 { KB_LEVEL_SAVE,               "Save"                          },
 { KB_LEVEL_SAVE_AS,            "Save As"                       },
+{ KB_REFRESH,                  "Refresh"                       },
 { KB_LEVEL_CLOSE,              "Close"                         },
 { KB_LEVEL_CLOSE_ALL,          "Close All"                     },
 { KB_LEVEL_RESIZE,             "Resize"                        },
@@ -49,6 +50,7 @@ GLOBAL const std::map<std::string, const char*> PREFERENCES_HOTKEYS_NAMES
 { KB_GPAK_PACK,                "Pack GPAK"                     },
 { KB_TOGGLE_ENTITY,            "Toggle Large Entities"         },
 { KB_TOGGLE_GUIDES,            "Toggle Entity Guides"          },
+{ KB_TOGGLE_PALETTE,           "Toggle Palette"                },
 { KB_GRID_TOGGLE,              "Toggle Tile Grid"              },
 { KB_BOUNDS_TOGGLE,            "Toggle Out of Bounds"          },
 { KB_LAYERS_TOGGLE,            "Toggle Transparency"           },
@@ -605,6 +607,7 @@ FILDEF void internal__do_preferences_hotkeys ()
     internal__do_hotkey_rebind(cursor, KB_LEVEL_OPEN           );
     internal__do_hotkey_rebind(cursor, KB_LEVEL_SAVE           );
     internal__do_hotkey_rebind(cursor, KB_LEVEL_SAVE_AS        );
+    internal__do_hotkey_rebind(cursor, KB_REFRESH              );
     internal__do_hotkey_rebind(cursor, KB_LEVEL_CLOSE          );
     internal__do_hotkey_rebind(cursor, KB_LEVEL_CLOSE_ALL      );
     internal__do_hotkey_rebind(cursor, KB_LEVEL_RESIZE         );
@@ -631,6 +634,7 @@ FILDEF void internal__do_preferences_hotkeys ()
     internal__do_hotkey_rebind(cursor, KB_GPAK_PACK            );
     internal__do_hotkey_rebind(cursor, KB_TOGGLE_ENTITY        );
     internal__do_hotkey_rebind(cursor, KB_TOGGLE_GUIDES        );
+    internal__do_hotkey_rebind(cursor, KB_TOGGLE_PALETTE       );
     internal__do_hotkey_rebind(cursor, KB_GRID_TOGGLE          );
     internal__do_hotkey_rebind(cursor, KB_BOUNDS_TOGGLE        );
     internal__do_hotkey_rebind(cursor, KB_LAYERS_TOGGLE        );
