@@ -1732,10 +1732,14 @@ FILDEF void load_level_tab (std::string file_name)
         Tab& tab = get_current_tab();
         tab.name = file_name;
         set_main_window_subtitle_for_tab(tab.name);
-
+        
         if (!load_level(tab.level, tab.name))
         {
             close_current_tab();
+        }
+        else
+        {
+            focus_mod_and_refresh_tab(tab);
         }
     }
 
@@ -1751,6 +1755,7 @@ FILDEF bool le_save (Tab& tab)
         std::string file_name = save_dialog(Dialog_Type::LVL);
         if (file_name.empty()) return false;
         tab.name = file_name;
+        focus_mod_and_refresh_tab(tab);
     }
 
     save_level(tab.level, tab.name);
@@ -1775,6 +1780,7 @@ FILDEF bool le_save_as ()
 
     tab.unsaved_changes = false;
     set_main_window_subtitle_for_tab(tab.name);
+    focus_mod_and_refresh_tab(tab);
 
     return true;
 }
@@ -2241,10 +2247,14 @@ FILDEF void level_drop_file (Tab* tab, std::string file_name)
         tab = &get_current_tab();
         tab->name = file_name;
         set_main_window_subtitle_for_tab(tab->name);
-
+        
         if (!load_level(tab->level, tab->name))
         {
             close_current_tab();
+        }
+        else
+        {
+            focus_mod_and_refresh_tab(*tab);
         }
     }
 

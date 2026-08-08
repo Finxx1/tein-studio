@@ -49,12 +49,17 @@ GLOBAL constexpr quad CLIP_REDO        = { 120,  24, 24, 24 };
 GLOBAL constexpr quad CLIP_ZOOM_OUT    = { 144,  24, 24, 24 };
 GLOBAL constexpr quad CLIP_ZOOM_IN     = { 168,  24, 24, 24 };
 GLOBAL constexpr quad CLIP_RUN         = { 192,  24, 24, 24 };
+GLOBAL constexpr quad CLIP_LIST_MODS   = {   0, 120,  8, 14 };
+GLOBAL constexpr quad CLIP_MOVE_UP	   = {  10, 122,  6,  5 };
+GLOBAL constexpr quad CLIP_MOVE_DOWN   = {  10, 129,  6,  5 };
+GLOBAL constexpr quad CLIP_EDIT_FOLDER = {	24, 120, 24, 24 };
 GLOBAL constexpr quad CLIP_SETTINGS    = { 216,  24, 24, 24 };
 GLOBAL constexpr quad CLIP_ABOUT       = { 120,  48, 24, 24 };
 GLOBAL constexpr quad CLIP_HELP        = { 144,  48, 24, 24 };
 GLOBAL constexpr quad CLIP_UPDATE      = { 168,  48, 24, 24 };
 GLOBAL constexpr quad CLIP_BUG         = { 192,  48, 24, 24 };
 GLOBAL constexpr quad CLIP_BACKUPS     = { 144,   0, 24, 24 };
+GLOBAL constexpr quad CLIP_MOD_ICONS   = {	 0,   0,360,360 };
 
 // Globally accessible and generic resources that can be used by the editor.
 // We also have a global copy of the no tile/spawn image texture so that we
@@ -73,6 +78,7 @@ GLOBAL Texture       resource_checker_16;
 GLOBAL Texture       resource_checker_20;
 GLOBAL Texture_Atlas resource_large;
 GLOBAL Texture_Atlas resource_small;
+GLOBAL Texture       resource_mod_icons;
 
 FILDEF bool init_resource_manager ();
 FILDEF void get_resource_location ();

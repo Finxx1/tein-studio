@@ -34,6 +34,10 @@ GLOBAL const std::map<std::string, const char*> PREFERENCES_HOTKEYS_NAMES
 { KB_CAMERA_ZOOM_OUT,          "Zoom Out"                      },
 { KB_CAMERA_ZOOM_IN,           "Zoom In"                       },
 { KB_RUN_GAME,                 "Run Game"                      },
+{ KB_RUN_FOCUSED_MOD,          "Run Focused Mod"               },
+{ KB_FOCUS_NEXT_MOD,           "Focus Next Mod"                },
+{ KB_FOCUS_PREV_MOD,           "Focus Prev Mod"                },
+{ KB_MODS_LIST,                "Mods List"                     },
 { KB_PREFERENCES,              "Preferences"                   },
 { KB_ABOUT,                    "About"                         },
 { KB_BUG_REPORT,               "Bug Report"                    },
@@ -87,6 +91,15 @@ GLOBAL const std::map<std::string, const char*> PREFERENCES_HOTKEYS_NAMES
 { KB_LOAD_PREV_LEVEL,          "Load Prev Level"               }
 };
 
+GLOBAL const std::map<std::string, const char*> PREFERENCES_MODPATHS_NAMES
+{
+{ SETTING_MODS_LAYOUT,         "Mods Layout"                   },
+{ SETTING_COLORED_TABS,        "Colored Tabs"                  },
+{ SETTING_HIGHLIGHT_MOD,       "Highlight Focused Mod"         },
+{ SETTING_FOCUS_TAB_MOD,       "Focus Mod On Tab Switch"       },
+{ SETTING_SHOW_MOD_LIST,       "Show Mod List"                 }
+};
+
 GLOBAL constexpr float PREFERENCES_V_FRAME_H       = 26;
 GLOBAL constexpr float PREFERENCES_SECTION_H       = 24;
 GLOBAL constexpr float PREFERENCES_INNER_XPAD      = 10;
@@ -95,12 +108,12 @@ GLOBAL constexpr float PREFERENCES_TEXT_BOX_INSET  =  2;
 GLOBAL constexpr float PREFERENCES_SCROLLBAR_WIDTH = 12;
 GLOBAL constexpr float PREFERENCES_COLOR_HEIGHT    = 18;
 
-enum class Preferennes_Tab { SETTINGS, HOTKEYS };
+enum class Preferences_Tab { SETTINGS, HOTKEYS, MODPATHS };
 
-GLOBAL Preferennes_Tab preferences_tab = Preferennes_Tab::SETTINGS;
+GLOBAL Preferences_Tab preferences_tab = Preferences_Tab::SETTINGS;
 
 GLOBAL float preferences_scroll_offset = 0;
-GLOBAL bool  preferences_mouse_pressed = false;
+GLOBAL float    modpaths_scroll_offset = 0;
 
 // When the preferences menu is opened we cache the current settings and
 // hotkey states. This allows the preferences menu to modify the current
@@ -110,6 +123,8 @@ GLOBAL bool  preferences_mouse_pressed = false;
 
 GLOBAL Settings                           cached_editor_settings;
 GLOBAL std::map<std::string, Key_Binding> cached_editor_hotkeys;
+GLOBAL std::vector<ModPath>               cached_modpaths;
+GLOBAL size_t                             cached_focused_mod;
 
 FILDEF void internal__next_section (vec2& cursor)
 {
@@ -149,6 +164,15 @@ FILDEF void internal__do_hotkeys_label (float w, const char* key)
     advance_panel_cursor(PREFERENCES_INNER_XPAD/2);
 }
 
+FILDEF void internal__do_modpaths_label (float w, const char* key)
+{
+    do_label(UI_ALIGN_LEFT, UI_ALIGN_CENTER, w, PREFERENCES_SECTION_H, PREFERENCES_MODPATHS_NAMES.at(key));
+
+    advance_panel_cursor(PREFERENCES_INNER_XPAD / 2);
+    do_separator(PREFERENCES_SECTION_H);
+    advance_panel_cursor(PREFERENCES_INNER_XPAD / 2);
+}
+
 FILDEF void internal__begin_settings_area (const char* title, vec2& cursor)
 {
     float w = get_viewport().w;
@@ -174,49 +198,6 @@ FILDEF void internal__end_settings_area ()
     set_panel_cursor_dir(UI_DIR_RIGHT);
 }
 
-FILDEF void internal__do_settings_color_swatch (vec2& cursor, float sw, float sh, vec4& color)
-{
-    // If we were presses we want to open the color picker with our color.
-    if (preferences_mouse_pressed && mouse_in_ui_bounds_xywh(cursor.x, cursor.y, sw, sh))
-    {
-        open_color_picker(&color);
-    }
-
-    cursor.y += 3;
-    set_draw_color(ui_color_light);
-    fill_quad(cursor.x+0, cursor.y+0, cursor.x+sw-0, cursor.y+sh-0);
-    set_draw_color(ui_color_ex_dark);
-    fill_quad(cursor.x+1, cursor.y+1, cursor.x+sw-1, cursor.y+sh-1);
-
-    float x1 = cursor.x   +2;
-    float y1 = cursor.y   +2;
-    float x2 = cursor.x+sw-2;
-    float y2 = cursor.y+sh-2;
-
-    float tw = x2 - x1;
-    float th = sh - 4;
-    float tx = x1 + (tw/2);
-    float ty = y1 + (th/2);
-
-    const Texture& tex = (CAST(int, th) % 14 == 0) ? resource_checker_14 : resource_checker_16;
-
-    quad clip = { 0, 0, tw, th };
-    draw_texture(tex, tx, ty, &clip);
-
-    vec4 max(color.r, color.g, color.b,       1);
-    vec4 min(color.r, color.g, color.b, color.a);
-
-    begin_draw(Buffer_Mode::TRIANGLE_STRIP);
-    put_vertex(x1, y2, min); // BL
-    put_vertex(x1, y1, min); // TL
-    put_vertex(x2, y2, max); // BR
-    put_vertex(x2, y1, max); // TR
-    end_draw();
-
-    cursor.y -= 3;
-    advance_panel_cursor(sw);
-}
-
 FILDEF void internal__do_color_setting_row (vec2& cursor, float w, const char* key1, const char* key2, vec4& c1, vec4& c2)
 {
     float lw1 = w-1;
@@ -226,10 +207,10 @@ FILDEF void internal__do_color_setting_row (vec2& cursor, float w, const char* k
     float sh = PREFERENCES_COLOR_HEIGHT;
 
     internal__do_half_settings_label(lw1, key1);
-    internal__do_settings_color_swatch(cursor, sw, sh, c1);
+    do_color_swatch(cursor, sw, sh, c1);
     internal__do_half_separator(cursor);
     internal__do_half_settings_label(lw2, key2);
-    internal__do_settings_color_swatch(cursor, sw, sh, c2);
+    do_color_swatch(cursor, sw, sh, c2);
     internal__next_section(cursor);
 }
 
@@ -294,6 +275,91 @@ FILDEF void internal__do_hotkey_rebind (vec2& cursor, const char* key)
     ++cursor.y;
 }
 
+FILDEF void internal__update_path (ModPath* modpath)
+{
+    std::vector<std::string> v = path_dialog(false);
+    if (v.empty()) return;
+
+    std::string path = fix_path_slashes(v[0]);
+    if (!path.empty() && path != modpath->path)
+    {
+        modpath->path   = path;
+        modpath->exists = does_path_exist(path);
+    }
+}
+
+FILDEF void internal__do_reorder_arrow (vec2& cursor, ModPath* modpath, float w, float h, size_t index, bool is_up)
+{
+    cursor.x              = 0;
+    const int sign        = is_up ? 1 : -1;
+    const bool is_enabled = is_up ? index : (index < modpaths.size() - 1);
+    if (do_button_img(NULL, w, h, is_enabled ? UI_NONE : UI_LOCKED, is_up ? &CLIP_MOVE_UP : &CLIP_MOVE_DOWN))
+    {
+        std::iter_swap(modpaths.begin()+index-is_up, modpaths.begin()+index+(!is_up));
+        if      (editor.focused_mod == index)      { editor.focused_mod -= sign; }
+        else if (editor.focused_mod == index-sign) { editor.focused_mod += sign; }
+    }
+    cursor.y += (h + 4) * sign;
+}
+
+FILDEF void internal__do_modpath (vec2& cursor, ModPath* modpath, size_t index)
+{
+    const float view_width   = get_viewport().w - (PREFERENCES_SCROLLBAR_WIDTH - 1);
+    const float text_height  = PREFERENCES_SECTION_H - (PREFERENCES_TEXT_BOX_INSET * 2);
+    const float arrow_height = roundf(text_height / 2) - 2;
+    const float button_width = roundf((get_viewport().w - (PREFERENCES_INNER_XPAD * 2)) / 12) - roundf(PREFERENCES_INNER_XPAD / 2);
+    const float text_width   = roundf((view_width - (button_width * 7)) - PREFERENCES_INNER_XPAD * 3 - 1);
+    const float scroll_y     = ui_panels.top().relative_offset.y;
+
+    do_quad(view_width, PREFERENCES_SECTION_H, ui_color_medium);
+    cursor.y += PREFERENCES_TEXT_BOX_INSET;
+
+    // Arrows to reorder mod paths.
+    internal__do_reorder_arrow(cursor, modpath, PREFERENCES_INNER_XPAD, arrow_height, index, true);
+    internal__do_reorder_arrow(cursor, modpath, PREFERENCES_INNER_XPAD, arrow_height, index, false);
+
+    // Name text box.
+    do_text_box(text_width, text_height, UI_NONE, modpath->name, "", UI_ALIGN_LEFT);
+    cursor.x += PREFERENCES_INNER_XPAD;
+    cursor.y -= PREFERENCES_TEXT_BOX_INSET;
+
+    // Color swatch.
+    vec2 color_cursor = { cursor.x, cursor.y + scroll_y };
+    do_color_swatch(color_cursor, button_width*3, text_height, modpath->color);
+    cursor.x += PREFERENCES_INNER_XPAD;
+    cursor.y += PREFERENCES_TEXT_BOX_INSET;
+    do_separator(PREFERENCES_SECTION_H);
+
+    // Action buttons.
+    set_ui_texture(&resource_mod_icons);
+    if (do_button_img(NULL, button_width, text_height, UI_NONE, &modpath->icon))
+    {
+        open_icon_picker(&modpath->icon);
+    }
+    set_ui_texture(&resource_icons);
+    if (do_button_img(NULL, button_width, text_height, UI_NONE, &CLIP_EDIT_FOLDER))
+    {
+        internal__update_path(modpath);
+    }
+    if (do_button_txt(NULL, button_width*2, text_height, UI_NONE, "Remove"))
+    {
+        modpaths.erase(modpaths.begin() + index);
+        if (editor.focused_mod > index) editor.focused_mod--;
+    }
+
+    internal__next_section(cursor);
+    cursor.y -= PREFERENCES_TEXT_BOX_INSET;
+    ++cursor.y;
+}
+
+FILDEF void internal__refresh_tab_colors (bool is_replacing) {
+    for (auto& tab : editor.tabs)
+    {
+        // Only change the color if we've made changes to modpaths or if tab has no color.
+        if (is_replacing || tab.color == vec4(0, 0, 0, 0)) tab.color = infer_tab_color(tab.name);
+    }
+}
+
 FILDEF void internal__save_settings ()
 {
     std::string file_name(get_appdata_path() + SETTINGS_FILE_NAME);
@@ -346,6 +412,11 @@ FILDEF void internal__save_settings ()
     {
         fprintf(file, "%s %s\n", SETTING_TILE_GRID_COLOR, "none");
     }
+    fprintf(file, "%s %s\n", SETTING_MODS_LAYOUT,    editor_settings.mods_layout.c_str());
+    fprintf(file, "%s %s\n", SETTING_COLORED_TABS,  (editor_settings.colored_tabs ) ? "true" : "false");
+    fprintf(file, "%s %s\n", SETTING_HIGHLIGHT_MOD, (editor_settings.highlight_mod) ? "true" : "false");
+    fprintf(file, "%s %s\n", SETTING_FOCUS_TAB_MOD, (editor_settings.focus_tab_mod) ? "true" : "false");
+    fprintf(file, "%s %s\n", SETTING_SHOW_MOD_LIST, (editor_settings.show_mod_list) ? "true" : "false");
 
     fprintf(file, "\n");
 
@@ -387,6 +458,36 @@ FILDEF void internal__save_settings ()
         }
         fprintf(file, "}\n");
     }
+}
+
+FILDEF void internal__save_modded_paths ()
+{
+    #define EXPAND_VEC4(v) v.r, v.g, v.b, v.a
+    std::string file_name(get_appdata_path() + MODDED_PATHS_FILE_NAME);
+    FILE* file = fopen(file_name.c_str(), "w");
+    if (!file)
+    {
+        LOG_ERROR(ERR_MED, "Failed to save modded paths data!");
+        return;
+    }
+    defer{ fclose(file); };
+
+    vec4 c;
+
+    // Save all of the modded paths to GON format.
+    fprintf(file, "modded_paths\n");
+    fprintf(file, "[\n");
+    for (auto& it : modpaths)
+    {
+        fprintf(file,                  "\t{\n");
+        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_NAME,  it.name.c_str()      );
+        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_PATH,  it.path.c_str()      );
+        fprintf(file, "\t\t%s [%f %f %f %f]\n", MODPATH_COLOR, EXPAND_VEC4(it.color));
+        fprintf(file,   "\t\t%s [%.0f %.0f]\n", MODPATH_ICON,  it.icon.x, it.icon.y );
+        fprintf(file,                  "\t}\n");
+    }
+    fprintf(file, "]\n");
+    #undef EXPAND_VEC4
 }
 
 FILDEF void internal__do_preferences_settings ()
@@ -618,6 +719,10 @@ FILDEF void internal__do_preferences_hotkeys ()
     internal__do_hotkey_rebind(cursor, KB_CAMERA_ZOOM_OUT      );
     internal__do_hotkey_rebind(cursor, KB_CAMERA_ZOOM_IN       );
     internal__do_hotkey_rebind(cursor, KB_RUN_GAME             );
+    internal__do_hotkey_rebind(cursor, KB_RUN_FOCUSED_MOD      );
+    internal__do_hotkey_rebind(cursor, KB_FOCUS_NEXT_MOD       );
+    internal__do_hotkey_rebind(cursor, KB_FOCUS_PREV_MOD       );
+    internal__do_hotkey_rebind(cursor, KB_MODS_LIST            );
     internal__do_hotkey_rebind(cursor, KB_PREFERENCES          );
     internal__do_hotkey_rebind(cursor, KB_ABOUT                );
     internal__do_hotkey_rebind(cursor, KB_BUG_REPORT           );
@@ -673,10 +778,146 @@ FILDEF void internal__do_preferences_hotkeys ()
     end_panel();
 }
 
+FILDEF void internal__do_preferences_modpaths ()
+{
+    float view_width  = get_viewport().w;
+    float view_height = get_viewport().h;
+
+    begin_panel(0, 0, view_width, view_height, UI_NONE, ui_color_medium);
+    begin_panel(PREFERENCES_INNER_XPAD, PREFERENCES_INNER_YPAD, view_width - (PREFERENCES_INNER_XPAD * 2), view_height - (PREFERENCES_INNER_YPAD * 2), UI_NONE);
+
+    // We redefine as these will now be different.
+    view_width  = get_viewport().w;
+    view_height = get_viewport().h;
+
+    const float section_width = roundf(view_width    / 2) - (PREFERENCES_INNER_XPAD / 2);
+    const float button_width  = roundf(section_width / 2);
+
+    vec2 cursor(0, 0);
+
+    set_panel_cursor_dir(UI_DIR_RIGHT);
+    set_panel_cursor(&cursor);
+
+    internal__begin_settings_area("Mod Preferences", cursor);
+
+    internal__do_modpaths_label(section_width, SETTING_MODS_LAYOUT);
+    UI_Flag separate_flags = (editor_settings.mods_layout == "separate") ? UI_NONE : UI_INACTIVE; // Figure out why other settings are stored as global variables and called here instead of just referring to editor_settings.
+    UI_Flag single_flags   = (editor_settings.mods_layout == "separate") ? UI_INACTIVE : UI_NONE;
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, separate_flags, "Separate"))
+    {
+        if (editor_settings.mods_layout != "separate")
+        {
+            editor_settings.mods_layout = "separate";
+        }
+    }
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, single_flags, "Single"))
+    {
+        if (editor_settings.mods_layout != "single")
+        {
+            editor_settings.mods_layout = "single";
+        }
+    }
+    internal__next_section(cursor);
+
+    internal__do_modpaths_label(section_width, SETTING_COLORED_TABS);
+    UI_Flag tabs_colored_flags = (editor_settings.colored_tabs) ? UI_NONE : UI_INACTIVE;
+    UI_Flag tabs_regular_flags = (editor_settings.colored_tabs) ? UI_INACTIVE : UI_NONE;
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, tabs_colored_flags, "Enabled"))
+    {
+        if (!editor_settings.colored_tabs)
+        {
+            editor_settings.colored_tabs = true;
+            internal__refresh_tab_colors(false);
+        }
+    }
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, tabs_regular_flags, "Disabled"))
+    {
+        editor_settings.colored_tabs = false;
+    }
+    internal__next_section(cursor);
+
+    internal__do_modpaths_label(section_width, SETTING_HIGHLIGHT_MOD);
+    UI_Flag highlight_mod_enabled_flags  = (editor_settings.highlight_mod) ? UI_NONE : UI_INACTIVE;
+    UI_Flag highlight_mod_disabled_flags = (editor_settings.highlight_mod) ? UI_INACTIVE : UI_NONE;
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, highlight_mod_enabled_flags, "Enabled"))
+    {
+        editor_settings.highlight_mod = true;
+    }
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, highlight_mod_disabled_flags, "Disabled"))
+    {
+        editor_settings.highlight_mod = false;
+    }
+    internal__next_section(cursor);
+
+    internal__do_modpaths_label(section_width, SETTING_FOCUS_TAB_MOD);
+    UI_Flag focus_tab_mod_enabled_flags = (editor_settings.focus_tab_mod) ? UI_NONE : UI_INACTIVE;
+    UI_Flag focus_tab_mod_disabled_flags = (editor_settings.focus_tab_mod) ? UI_INACTIVE : UI_NONE;
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, focus_tab_mod_enabled_flags, "Enabled"))
+    {
+        editor_settings.focus_tab_mod = true;
+    }
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, focus_tab_mod_disabled_flags, "Disabled"))
+    {
+        editor_settings.focus_tab_mod = false;
+    }
+    internal__next_section(cursor);
+
+    internal__do_modpaths_label(section_width, SETTING_SHOW_MOD_LIST);
+    UI_Flag hide_modlist_enabled_flags = (editor_settings.show_mod_list) ? UI_NONE : UI_INACTIVE;
+    UI_Flag hide_modlist_disabled_flags = (editor_settings.show_mod_list) ? UI_INACTIVE : UI_NONE;
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, hide_modlist_enabled_flags, "Enabled"))
+    {
+        editor_settings.show_mod_list = true;
+    }
+    if (do_button_txt(NULL, button_width, PREFERENCES_SECTION_H, hide_modlist_disabled_flags, "Disabled"))
+    {
+        editor_settings.show_mod_list = false;
+    }
+    internal__next_section(cursor);
+
+    internal__end_settings_area();
+
+    internal__begin_settings_area("Modded Paths", cursor);
+    cursor.y -= PREFERENCES_TEXT_BOX_INSET * 3;
+
+    // List of modded paths.
+    begin_panel(0, cursor.y, view_width, view_height-cursor.y-PREFERENCES_V_FRAME_H, UI_NONE, ui_color_med_dark);
+    set_panel_cursor_dir(UI_DIR_RIGHT);
+    cursor.y = 0;
+    set_panel_cursor(&cursor);
+    view_width  = get_viewport().w;
+    view_height = get_viewport().h;
+
+    const float content_height = modpaths.size() * (PREFERENCES_SECTION_H + 1);
+    do_scrollbar(view_width - PREFERENCES_SCROLLBAR_WIDTH + 1, -1, PREFERENCES_SCROLLBAR_WIDTH, view_height+1, content_height, modpaths_scroll_offset);
+
+    size_t counter = 0;
+    for (auto& it : modpaths) 
+    { 
+        internal__do_modpath(cursor, &it, counter++);
+    }
+
+    end_panel();
+
+    internal__end_settings_area();
+
+    view_width  = get_viewport().w;
+    view_height = get_viewport().h;
+
+    cursor = { view_width-button_width-1, view_height-PREFERENCES_V_FRAME_H+4 };
+    do_separator(PREFERENCES_SECTION_H);
+    if (do_button_txt(NULL, button_width+1, PREFERENCES_SECTION_H, UI_NONE, "Load New Folder")) load_new_modpath();
+
+    end_panel();
+    end_panel();
+}
+
 FILDEF void init_preferences_menu ()
 {
     cached_editor_settings = editor_settings;
     cached_editor_hotkeys  = key_bindings;
+    cached_modpaths        = modpaths;
+    cached_focused_mod     = editor.focused_mod;
 
     color_picker_mouse_pressed = false;
 }
@@ -701,7 +942,7 @@ FILDEF void do_preferences_menu ()
     float vw = get_viewport().w;
     float vh = get_viewport().h;
 
-    float tw = roundf(vw / 2);
+    float tw = roundf(vw / 3);
     float th = pvfh - WINDOW_BORDER;
 
     float bw = roundf(vw / 3);
@@ -714,11 +955,13 @@ FILDEF void do_preferences_menu ()
     set_panel_cursor_dir(UI_DIR_RIGHT);
     set_panel_cursor(&cursor);
 
-    UI_Flag settings_flags = (preferences_tab == Preferennes_Tab::SETTINGS) ? UI_HIGHLIGHT : UI_INACTIVE;
-    UI_Flag hotkeys_flags  = (preferences_tab == Preferennes_Tab::HOTKEYS)  ? UI_HIGHLIGHT : UI_INACTIVE;
+    UI_Flag settings_flags = (preferences_tab == Preferences_Tab::SETTINGS) ? UI_HIGHLIGHT : UI_INACTIVE;
+    UI_Flag hotkeys_flags  = (preferences_tab == Preferences_Tab::HOTKEYS)  ? UI_HIGHLIGHT : UI_INACTIVE;
+    UI_Flag modpaths_flags = (preferences_tab == Preferences_Tab::MODPATHS) ? UI_HIGHLIGHT : UI_INACTIVE;
 
-    if (do_button_txt(NULL, tw,th, settings_flags, "Settings")) preferences_tab = Preferennes_Tab::SETTINGS;
-    if (do_button_txt(NULL, tw,th, hotkeys_flags,  "Hotkeys"))  preferences_tab = Preferennes_Tab::HOTKEYS;
+    if (do_button_txt(NULL,   tw,th, settings_flags, "Settings"))  preferences_tab = Preferences_Tab::SETTINGS;
+    if (do_button_txt(NULL,   tw,th, hotkeys_flags,  "Hotkeys"))   preferences_tab = Preferences_Tab::HOTKEYS;
+    if (do_button_txt(NULL, tw+1,th, modpaths_flags, "Mod Paths")) preferences_tab = Preferences_Tab::MODPATHS;
 
     // Just in case of weird rounding manually add the right separator.
     cursor.x = vw;
@@ -740,8 +983,9 @@ FILDEF void do_preferences_menu ()
     std::string restore_message;
     switch (preferences_tab)
     {
-        case (Preferennes_Tab::SETTINGS): restore_message = "Restore Settings"; break;
-        case (Preferennes_Tab::HOTKEYS):  restore_message = "Restore Hotkeys";  break;
+        case (Preferences_Tab::SETTINGS): restore_message = "Restore Settings";      break;
+        case (Preferences_Tab::HOTKEYS):  restore_message = "Restore Hotkeys";       break;
+        case (Preferences_Tab::MODPATHS): restore_message = "Restore Mods Settings"; break;
     }
 
     // Just to make sure that we always reach the end of the panel space.
@@ -765,8 +1009,9 @@ FILDEF void do_preferences_menu ()
     begin_panel(p2, UI_NONE);
     switch (preferences_tab)
     {
-        case (Preferennes_Tab::SETTINGS): internal__do_preferences_settings(); break;
-        case (Preferennes_Tab::HOTKEYS):  internal__do_preferences_hotkeys();  break;
+        case (Preferences_Tab::SETTINGS): internal__do_preferences_settings(); break;
+        case (Preferences_Tab::HOTKEYS):  internal__do_preferences_hotkeys();  break;
+        case (Preferences_Tab::MODPATHS): internal__do_preferences_modpaths(); break;
     }
     end_panel();
 
@@ -775,20 +1020,10 @@ FILDEF void do_preferences_menu ()
 
 FILDEF void handle_preferences_menu_events ()
 {
-    // Check if there was a mouse press for the color swatch settings.
-    preferences_mouse_pressed = false;
-
     if (!is_window_focused("Preferences")) return;
 
     switch (main_event.type)
     {
-        case (SDL_MOUSEBUTTONDOWN):
-        {
-            if (main_event.button.button == SDL_BUTTON_LEFT)
-            {
-                preferences_mouse_pressed = true;
-            }
-        } break;
         case (SDL_KEYDOWN):
         {
             if (!text_box_is_active() && !hotkey_is_active())
@@ -807,15 +1042,18 @@ FILDEF void restore_preferences ()
 {
     switch (preferences_tab)
     {
-        case (Preferennes_Tab::SETTINGS): restore_editor_settings();     break;
-        case (Preferennes_Tab::HOTKEYS):  restore_editor_key_bindings(); break;
+        case (Preferences_Tab::SETTINGS): restore_editor_settings();     break;
+        case (Preferences_Tab::HOTKEYS):  restore_editor_key_bindings(); break;
+        case (Preferences_Tab::MODPATHS): restore_modpath_settings();    break;
     }
 }
 
 FILDEF void cancel_preferences ()
 {
     // We only want to shot this prompt if the user actually made any changes to preferences.
-    if (editor_settings != cached_editor_settings || key_bindings != cached_editor_hotkeys)
+    if (editor_settings != cached_editor_settings 
+        || key_bindings != cached_editor_hotkeys 
+        || modpaths != cached_modpaths)
     {
         // Make sure the user is certain about what they are doing and cancel the
         // action if they decide that they do not actually want to discard changes.
@@ -828,24 +1066,34 @@ FILDEF void cancel_preferences ()
     bool tile_graphics_changed = (editor_settings.tile_graphics != cached_editor_settings.tile_graphics);
 
     // Restore the settings/hotkeys states from before modifying preferences.
-    editor_settings = cached_editor_settings;
-    key_bindings = cached_editor_hotkeys;
+    editor_settings    = cached_editor_settings;
+    key_bindings       = cached_editor_hotkeys;
+    modpaths           = cached_modpaths;
+    editor.focused_mod = cached_focused_mod;
 
     update_systems_that_rely_on_settings(tile_graphics_changed);
 
     hide_window("ColorPicker");
+    hide_window("IconPicker");
     hide_window("Preferences");
 }
 
 FILDEF void save_preferences ()
 {
     // No point saving unless there were changes.
-    if (editor_settings != cached_editor_settings ||
+    if (editor_settings != cached_editor_settings || 
         key_bindings != cached_editor_hotkeys)
     {
         internal__save_settings();
     }
+    if (modpaths != cached_modpaths)
+    {
+        internal__save_modded_paths();
+        internal__refresh_tab_colors(true);
+        if (editor.focused_mod >= modpaths.size()) editor.focused_mod = 0;
+    }
 
     hide_window("ColorPicker");
+    hide_window("IconPicker");
     hide_window("Preferences");
 }

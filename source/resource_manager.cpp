@@ -192,6 +192,11 @@ FILDEF bool load_editor_resources ()
         LOG_ERROR(ERR_MAX, "Failed to load OpenDyslexic mono font!");
         return false;
     }
+    if (!load_texture_resource("textures/mod_icons/icons.png", resource_mod_icons))
+    {
+        LOG_ERROR(ERR_MAX, "Failed to load mod icons!");
+        return false;
+    }
 
     update_editor_font();
 
@@ -213,6 +218,7 @@ FILDEF void free_editor_resources ()
     free_texture      (resource_checker_20);
     free_texture_atlas(resource_large);
     free_texture_atlas(resource_small);
+    free_texture      (resource_mod_icons);
 }
 
 FILDEF std::string build_resource_string (std::string str)

@@ -82,7 +82,8 @@ FILDEF void internal__dump_debug_application_info ()
     }
 }
 
-FILDEF void internal__gon_error_callback(const std::string& err) {
+FILDEF void internal__gon_error_callback(const std::string& err) 
+{
 	LOG_ERROR(ERR_MED, "%s", err.c_str());
 }
 
@@ -133,16 +134,17 @@ FILDEF void init_application (int argc, char** argv)
             exit(0);
         }
 		
-		// We need to handle this immediately or the data WILL ALMOST
-		// CERTAINLY become invalid.
-		SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
-		SDL_AddEventWatch(handle_copydata_events, nullptr);
-		
-		// Leaving this enabled breaks the preferences menu since it reads
-		// the latest event outside of the event loop.
-		if (SDL_SetHint(SDL_HINT_POLL_SENTINEL, "0") != SDL_TRUE) {
-			LOG_ERROR(ERR_MAX, "Failed to disable SDL_POLLSENTINEL!");
-		}
+        // We need to handle this immediately or the data WILL ALMOST
+        // CERTAINLY become invalid.
+        SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+        SDL_AddEventWatch(handle_copydata_events, nullptr);
+
+        // Leaving this enabled breaks the preferences menu since it reads
+        // the latest event outside of the event loop.
+        if (SDL_SetHint(SDL_HINT_POLL_SENTINEL, "0") != SDL_TRUE) 
+        {
+            LOG_ERROR(ERR_MAX, "Failed to disable SDL_POLLSENTINEL!");
+        }
 
         get_resource_location();
 
@@ -158,18 +160,22 @@ FILDEF void init_application (int argc, char** argv)
 
         if (!create_window("Preferences", "Preferences"     , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 570,480, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create preferences window!" ); return; }
         if (!create_window("ColorPicker", "Color Picker"    , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 250,302, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create color picker window!"); return; }
+        if (!create_window("IconPicker" , "Icon Picker"     , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 370,396, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create icon picker window!" ); return; }
         if (!create_window("New"        , "New"             , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 230,126, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create new window!"         ); return; }
         if (!create_window("Resize"     , "Resize"          , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 230,200, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create resize window!"      ); return; }
-        if (!create_window("About"      , "About"           , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440,114, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create about window!"       ); return; }
+        if (!create_window("About"      , "About"           , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 520,132, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create about window!"       ); return; }
+        if (!create_window("ModsList"   , "Mods List"       , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440,302, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create mods list window!"   ); return; }
         if (!create_window("Unpack"     , "Unpack"          , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 360, 80, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create GPAK unpack window!" ); return; }
         if (!create_window("Pack"       , "Pack"            , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 360, 80, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create GPAK unpack window!" ); return; }
         if (!create_window("LoadGame"   , "Locate Game"     , SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, 440,100, 0,0, SDL_WINDOW_SKIP_TASKBAR)) { LOG_ERROR(ERR_MAX, "Failed to create path window!"        ); return; }
 
         get_window("Preferences"). close_callback = []() { cancel_preferences    (); };
         get_window("ColorPicker"). close_callback = []() { cancel_color_picker   (); };
+        get_window("IconPicker" ). close_callback = []() { cancel_icon_picker    (); };
         get_window("New"        ). close_callback = []() { cancel_new            (); };
         get_window("Resize"     ). close_callback = []() { cancel_resize         (); };
         get_window("About"      ). close_callback = []() { hide_window("About"    ); };
+        get_window("ModsList"   ). close_callback = []() { hide_window("ModsList" ); };
         get_window("Unpack"     ). close_callback = []() { cancel_unpack         (); };
         get_window("Pack"       ). close_callback = []() { cancel_pack           (); };
         get_window("LoadGame"   ). close_callback = []() { cancel_path           (); };
@@ -177,15 +183,18 @@ FILDEF void init_application (int argc, char** argv)
 
         make_window_a_child("Preferences");
         make_window_a_child("ColorPicker");
+        make_window_a_child("IconPicker");
         make_window_a_child("New");
         make_window_a_child("Resize");
         make_window_a_child("About");
+        make_window_a_child("ModsList");
         make_window_a_child("Unpack");
         make_window_a_child("Pack");
         make_window_a_child("LoadGame");
 
         if (!init_renderer           ()) { LOG_ERROR(ERR_MAX, "Failed to setup the renderer!"      ); return; }
         if (!load_editor_settings    ()) { LOG_ERROR(ERR_MED, "Failed to load editor settings!"    );         }
+        if (!load_modpaths           ()) { LOG_ERROR(ERR_MED, "Failed to load modded paths!   "    );         }
         if (!load_editor_key_bindings()) { LOG_ERROR(ERR_MED, "Failed to load editor key bindings!");         }
         if (!load_editor_resources   ()) { LOG_ERROR(ERR_MAX, "Failed to load editor resources!"   ); return; }
         if (!init_tile_panel         ()) { LOG_ERROR(ERR_MAX, "Failed to setup the tile panel!"    ); return; }
@@ -209,6 +218,7 @@ FILDEF void init_application (int argc, char** argv)
     }
 
     dump_editor_settings();
+    dump_modpaths();
     dump_editor_key_bindings();
 
     LOG_DEBUG("");
@@ -289,12 +299,30 @@ FILDEF void do_application ()
         render_present();
     }
 
+    if (!is_window_hidden("IconPicker"))
+    {
+        set_render_target(&get_window("IconPicker"));
+        set_viewport(0, 0, get_render_target_w(), get_render_target_h());
+        render_clear(ui_color_medium);
+        do_icon_picker();
+        render_present();
+    }
+
     if (!is_window_hidden("About"))
     {
         set_render_target(&get_window("About"));
         set_viewport(0, 0, get_render_target_w(), get_render_target_h());
         render_clear(ui_color_medium);
         do_about();
+        render_present();
+    }
+
+    if (!is_window_hidden("ModsList"))
+    {
+        set_render_target(&get_window("ModsList"));
+        set_viewport(0, 0, get_render_target_w(), get_render_target_h());
+        render_clear(ui_color_medium);
+        do_mods_list();
         render_present();
     }
 
@@ -353,8 +381,8 @@ FILDEF void do_application ()
 
 FILDEF void internal__handle_event (SDL_Event* e)
 {
-	main_event = *e;
-	
+    main_event = *e;
+
     #if defined(BUILD_DEBUG)
     generate_texture_atlases();
     pack_textures();
@@ -368,17 +396,19 @@ FILDEF void internal__handle_event (SDL_Event* e)
     handle_editor_events();
     handle_preferences_menu_events();
     handle_color_picker_events();
+    handle_icon_picker_events();
     handle_new_events();
     handle_resize_events();
     handle_tooltip_events();
     handle_about_events();
+    handle_mods_list_events();
     handle_path_events();
 }
 
 FILDEF bool handle_application_events ()
 {
     // We wait for events so we don't waste CPU and GPU power.
-	SDL_Event e;
+    SDL_Event e;
     if (!SDL_WaitEvent(&e))
     {
         LOG_ERROR(ERR_MED, "Error waiting for events! (%s)", SDL_GetError());
@@ -392,17 +422,17 @@ FILDEF bool handle_application_events ()
     do
     {
         // This event can overwrite some others and already has a watch.
-		if (e.type == SDL_SYSWMEVENT)
-		{
-			continue;
-		}
-		
+        if (e.type == SDL_SYSWMEVENT)
+        {
+            continue;
+        }
+
         if (e.type == SDL_QUIT)
         {
             main_running = false;
         }
-		
-		internal__handle_event(&e);
+
+        internal__handle_event(&e);
     }
     while (SDL_PollEvent(&e));
 

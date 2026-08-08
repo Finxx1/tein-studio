@@ -105,9 +105,12 @@ FILDEF UI_Flag get_panel_flags ();
 
 FILDEF float calculate_button_txt_width (std::string text);
 
-STDDEF bool do_button_img (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", std::string kb = "", std::string name = "");
-STDDEF bool do_button_txt (UI_Action action, float w, float h, UI_Flag flags, std::string text,        std::string info = "", std::string kb = "", std::string name = "");
-FILDEF bool do_button_txt (UI_Action action,          float h, UI_Flag flags, std::string text,        std::string info = "", std::string kb = "", std::string name = "");
+STDDEF bool do_button_img       (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", std::string kb = "", std::string name = "");
+STDDEF bool do_button_img_color (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", std::string kb = "", std::string name = "", vec4 color = vec4(0,0,0,0));
+STDDEF bool do_button_txt       (UI_Action action, float w, float h, UI_Flag flags, std::string text,        std::string info = "", std::string kb = "", std::string name = "");
+FILDEF bool do_button_txt       (UI_Action action,          float h, UI_Flag flags, std::string text,        std::string info = "", std::string kb = "", std::string name = "");
+
+STDDEF void do_color_swatch (vec2& cursor, float sw, float sh, vec4& color);
 
 STDDEF void do_label (UI_Align horz, UI_Align vert, float w, float h, std::string text, vec4 bg = vec4(0,0,0,0));
 FILDEF void do_label (UI_Align horz, UI_Align vert,          float h, std::string text, vec4 bg = vec4(0,0,0,0));
@@ -135,6 +138,6 @@ STDDEF void do_scrollbar (float x, float y, float w, float h, float content_heig
 STDDEF void begin_panel_gradient (float x, float y, float w, float h, UI_Flag flags, vec4 cl = vec4(0,0,0,0), vec4 cr = vec4(0,0,0,0));
 FILDEF void begin_panel_gradient (quad bounds,                        UI_Flag flags, vec4 cl = vec4(0,0,0,0), vec4 cr = vec4(0,0,0,0));
 
-STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_Flag flags, std::string info = "");
+STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_Flag flags, std::string info = "", const bool HAS_COLOR = false);
 
-STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", std::string kb = "", std::string name = "");
+STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", const bool HAS_COLOR = false, std::string kb = "", std::string name = "");

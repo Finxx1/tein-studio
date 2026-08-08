@@ -10,6 +10,7 @@ GLOBAL constexpr const char* HB_NAME_ZOOM_IN     = "Zoom In";
 GLOBAL constexpr const char* HB_NAME_PACK        = "Pack GPAK";
 GLOBAL constexpr const char* HB_NAME_UNPACK      = "Unpack GPAK";
 GLOBAL constexpr const char* HB_NAME_RUN_GAME    = "Play";
+GLOBAL constexpr const char* HB_NAME_MODS_LIST   = "Mods List";
 GLOBAL constexpr const char* HB_NAME_PREFERENCES = "Preferences";
 GLOBAL constexpr const char* HB_NAME_ABOUT       = "About";
 GLOBAL constexpr const char* HB_NAME_HELP        = "Help";
@@ -28,11 +29,64 @@ GLOBAL constexpr const char* HB_INFO_ZOOM_IN     = "Zoom in the editor camera.";
 GLOBAL constexpr const char* HB_INFO_PACK        = "Pack data files into the GPAK file format.";
 GLOBAL constexpr const char* HB_INFO_UNPACK      = "Unpack data files from the GPAK file format.";
 GLOBAL constexpr const char* HB_INFO_RUN_GAME    = "Runs The End is Nigh game application.";
+GLOBAL constexpr const char* HB_INFO_RUN_MOD     = "Runs The End is Nigh using a Modded Path.";
+GLOBAL constexpr const char* HB_INFO_MODS_LIST   = "Show all modded paths.";
 GLOBAL constexpr const char* HB_INFO_PREFERENCES = "Open the preferences menu to customize the editor.";
 GLOBAL constexpr const char* HB_INFO_ABOUT       = "Open the about menu for application information.";
 GLOBAL constexpr const char* HB_INFO_BUG_REPORT  = "Report technical issues or bugs with the editor.";
 GLOBAL constexpr const char* HB_INFO_HELP        = "Information and help about modding The End is Nigh.";
 GLOBAL constexpr const char* HB_INFO_BACKUPS     = "Open the folder containing level and map backups.";
+
+FILDEF void internal__run_modpath (ModPath* modpath, bool is_focused)
+{
+    if (does_path_exist(modpath->path))
+    {
+        run_game_with_params(modpath->path);
+    }
+    else
+    {
+        if (modpath->exists) modpath->exists = false;
+        if (is_focused)      editor.focused_mod = 0;
+        LOG_ERROR(ERR_MIN, "The selected mod couldn't be executed: \"%s\" path doesn't exist.", modpath->path.c_str());
+    }
+}
+
+FILDEF void internal__do_mod_button (float bw, float bh, ModPath* modpath, size_t index)
+{
+    bool  is_focused              = (index == editor.focused_mod);
+    const UI_Flag highlight_flags = (!is_focused || !editor_settings.highlight_mod) ? UI_NONE : UI_HIGHLIGHT;
+    const UI_Flag button_flags    = modpath->exists ? highlight_flags : UI_LOCKED;
+    if (do_button_img_color(NULL, bw, bh, button_flags, &modpath->icon, HB_INFO_RUN_MOD, KB_RUN_FOCUSED_MOD, modpath->name, modpath->color))
+    {
+        internal__run_modpath(modpath, is_focused);
+    }
+}
+
+FILDEF void internal__do_mod_buttons (float bw, float bh)
+{
+    if (modpaths.empty()) return;
+    set_ui_texture(&resource_mod_icons);
+    if (editor_settings.mods_layout == "separate")
+    {
+        // Show all mods as separate buttons.
+        size_t counter = 0;
+        for (auto& it : modpaths)
+        {
+            // Show as many mods as can fit without any Overflow.
+            // ( 17 obligatory buttons in the toolbar * bw = 527 + 12 for small button )
+            if ((bw * (counter + 1)) + 539 >= get_viewport().w) break;
+            internal__do_mod_button(bw, bh, &it, counter++);
+        }
+    }
+    else
+    {
+        // Only show button to play last mod.
+        ModPath& modpath = modpaths[editor.focused_mod];
+        internal__do_mod_button(bw, bh, &modpath, editor.focused_mod);
+    }
+    set_ui_texture(&resource_icons);
+    if (editor_settings.show_mod_list) do_button_img(hb_mods_list, 12, bh, UI_NONE, &CLIP_LIST_MODS, HB_INFO_MODS_LIST, KB_MODS_LIST, HB_NAME_MODS_LIST);
+}
 
 FILDEF void do_hotbar ()
 {
@@ -137,6 +191,8 @@ FILDEF void do_hotbar ()
     width += calculate_button_txt_width(HB_NAME_PACK       );
     width += calculate_button_txt_width(HB_NAME_UNPACK     );
     width += calculate_button_txt_width(HB_NAME_RUN_GAME   );
+    width += bw * (editor_settings.mods_layout == "separate" ? modpaths.size() : !modpaths.empty());
+    width += !modpaths.empty() * 12;
     width += calculate_button_txt_width(HB_NAME_PREFERENCES);
     width += calculate_button_txt_width(HB_NAME_ABOUT      );
     width += calculate_button_txt_width(HB_NAME_BUG_REPORT );
@@ -158,6 +214,7 @@ FILDEF void do_hotbar ()
     do_button_txt(hb_gpak_pack,       bh,  pack_flags,      HB_NAME_PACK,         HB_INFO_PACK,         KB_GPAK_PACK                            );
     do_button_txt(hb_gpak_unpack,     bh,  unpack_flags,    HB_NAME_UNPACK,       HB_INFO_UNPACK,       KB_GPAK_UNPACK                          );
     do_button_txt(hb_run_game,        bh,  UI_NONE,         HB_NAME_RUN_GAME,     HB_INFO_RUN_GAME,     KB_RUN_GAME                             );
+    internal__do_mod_buttons(      bw,bh);
     do_button_txt(hb_preferences,     bh,  UI_NONE,         HB_NAME_PREFERENCES,  HB_INFO_PREFERENCES,  KB_PREFERENCES                          );
     do_button_txt(hb_about,           bh,  UI_NONE,         HB_NAME_ABOUT,        HB_INFO_ABOUT,        KB_ABOUT                                );
     do_button_txt(hb_bug_report,      bh,  UI_NONE,         HB_NAME_BUG_REPORT,   HB_INFO_BUG_REPORT,   KB_BUG_REPORT                           );
@@ -178,6 +235,7 @@ FILDEF void do_hotbar ()
     do_button_img(hb_gpak_pack,    bw,bh,  pack_flags,      &CLIP_PACK,           HB_INFO_PACK,         KB_GPAK_PACK,        HB_NAME_PACK       );
     do_button_img(hb_gpak_unpack,  bw,bh,  unpack_flags,    &CLIP_UNPACK,         HB_INFO_UNPACK,       KB_GPAK_UNPACK,      HB_NAME_UNPACK     );
     do_button_img(hb_run_game,     bw,bh,  UI_NONE,         &CLIP_RUN,            HB_INFO_RUN_GAME,     KB_RUN_GAME,         HB_NAME_RUN_GAME   );
+    internal__do_mod_buttons(      bw,bh);
     do_button_img(hb_preferences,  bw,bh,  UI_NONE,         &CLIP_SETTINGS,       HB_INFO_PREFERENCES,  KB_PREFERENCES,      HB_NAME_PREFERENCES);
     do_button_img(hb_about,        bw,bh,  UI_NONE,         &CLIP_ABOUT,          HB_INFO_ABOUT,        KB_ABOUT,            HB_NAME_ABOUT      );
     do_button_img(hb_bug_report,   bw,bh,  UI_NONE,         &CLIP_BUG,            HB_INFO_BUG_REPORT,   KB_BUG_REPORT,       HB_NAME_BUG_REPORT );
@@ -353,55 +411,38 @@ FILDEF void hb_gpak_pack ()
     }
 }
 
-FILDEF void hb_run_game ()
+FILDEF void hb_run_game () 
 {
-    constexpr const char* EXE_STEAM_X86 = "C:/Program Files (x86)/Steam/steamapps/common/theendisnigh/TheEndIsNigh.exe";
-    constexpr const char* EXE_STEAM_X64 = "C:/Program Files/Steam/steamapps/common/theendisnigh/TheEndIsNigh.exe";
-    constexpr const char* EXE_STEAM_APP = "TheEndIsNigh.exe";
+    run_game_with_params("");
+}
 
-    constexpr const char* EXE_EPIC_X86  = "C:/Program Files (x86)/Epic Games/theendisnigh/TheEnd.exe";
-    constexpr const char* EXE_EPIC_X64  = "C:/Program Files)/Epic Games/theendisnigh/TheEnd.exe";
-    constexpr const char* EXE_EPIC_APP  = "TheEnd.exe";
+FILDEF void hb_run_focused_mod() 
+{
+    // If there are no mods, do nothing.
+    if (modpaths.size() == 0) return;
 
-    const std::vector<std::string> EXECUTABLES
+    const size_t selected = editor.focused_mod;
+    if (modpaths.size() > selected)
     {
-        EXE_STEAM_X86, EXE_STEAM_X64, EXE_STEAM_APP,
-        EXE_EPIC_X86, EXE_EPIC_X64, EXE_EPIC_APP
-    };
-
-    std::string executable;
-    if (!editor_settings.game_path.empty())
-    {
-        executable = editor_settings.game_path;
-        if (!does_file_exist(executable))
-        {
-            executable.clear();
-        }
+        ModPath& modpath = modpaths[selected];
+        internal__run_modpath(&modpath, true);
     }
-    if (executable.empty())
+    else
     {
-        for (auto exe: EXECUTABLES)
-        {
-            executable = exe;
-            if (does_file_exist(executable))
-            {
-                break;
-            }
-        }
-        if (!does_file_exist(executable))
-        {
-            executable.clear();
-        }
+        editor.focused_mod = 0;
+        LOG_ERROR(ERR_MIN, "The selected mod (%d) doesn't exist among the modded paths vector (of size %d)!", selected, modpaths.size());
     }
+}
 
-    // Executable couldn't be found so we will ask for the location.
-    if (executable.empty())
+FILDEF void hb_mods_list ()
+{
+    if (is_window_hidden("ModsList"))
     {
-        open_path();
+        show_window("ModsList");
     }
-    else if (!run_executable(executable))
+    else
     {
-        LOG_ERROR(ERR_MED, "Failed to launch The End is Nigh executable!");
+        raise_window("ModsList");
     }
 }
 

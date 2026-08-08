@@ -1,3 +1,16 @@
+FILDEF bool operator== (const quad& a, const quad& b)
+{
+    return (a.x == b.x &&
+            a.y == b.y &&
+            a.w == b.w &&
+            a.h == b.h);
+}
+
+FILDEF bool operator!= (const quad& a, const quad& b)
+{
+    return !(a == b);
+}
+
 STDDEF std::vector<u8> read_binary_file (std::string file_name)
 {
     std::ifstream file(file_name, std::ios::binary);

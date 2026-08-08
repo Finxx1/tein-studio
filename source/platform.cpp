@@ -389,6 +389,27 @@ FILDEF bool run_executable (std::string exe)
     return true;
 }
 
+FILDEF bool run_executable (std::string exe, std::string args)
+{
+    PROCESS_INFORMATION process_info = {};
+    STARTUPINFOA        startup_info = {};
+
+    startup_info.cb = sizeof(STARTUPINFOA);
+    
+    std::string cmd_line = "\"" + exe + "\" " + args;
+
+    if (!CreateProcessA(NULL, (LPSTR)cmd_line.c_str(), NULL, NULL, FALSE, 0, NULL,
+        strip_file_name(exe).c_str(), &startup_info, &process_info))
+    {
+        return false; // It'll work this time. Surely it'll work.
+    }
+
+    CloseHandle(process_info.hProcess);
+    CloseHandle(process_info.hThread);
+
+    return true;
+}
+
 FILDEF void load_webpage (std::string url)
 {
     ShellExecuteA(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOW);
@@ -407,7 +428,8 @@ FILDEF bool is_first()
     return true;
 }
 
-FILDEF HWND internal__win32_make_dummy_window() {
+FILDEF HWND internal__win32_make_dummy_window() 
+{
 	WNDCLASSA wc{};
 	wc.lpfnWndProc = DefWindowProcA;
 	wc.hInstance = GetModuleHandle(nullptr);
@@ -434,7 +456,8 @@ STDDEF int SDLCALL handle_copydata_events(void* userdata, SDL_Event* event)
 	if (msg.msg.win.msg == WM_COPYDATA)
 	{
 		COPYDATASTRUCT* cds = CAST(COPYDATASTRUCT*, msg.msg.win.lParam);
-		if (cds->dwData != 1234 || cds->cbData < 8) {
+		if (cds->dwData != 1234 || cds->cbData < 8) 
+        {
 			// Malformed packet.
 			LOG_ERROR(ERR_MIN, "Malformed packet received");
 			return 1;
@@ -448,14 +471,16 @@ STDDEF int SDLCALL handle_copydata_events(void* userdata, SDL_Event* event)
 		
 		std::vector<std::string> files;
 		size_t offset = 8;
-		for (size_t i = 0; i < size; i++) {
+		for (size_t i = 0; i < size; i++) 
+        {
 			std::string s(CAST(char*, data + offset));
 			LOG_DEBUG("'%s'", s.c_str());
 			files.push_back(make_path_absolute(s));
 			offset += s.size() + 1;
 		}
 		
-		for (size_t i = 0; i < files.size(); i++) {
+		for (size_t i = 0; i < files.size(); i++) 
+        {
 			if (!does_file_exist(files[i]))
             {
                 std::string msg(format_string("Could not find file '%s'!", files[i].c_str()));
@@ -479,7 +504,8 @@ STDDEF int SDLCALL handle_copydata_events(void* userdata, SDL_Event* event)
 FILDEF void send_files_to_main_window(int argc, char** argv)
 {
     size_t payload_size = 8;
-	for (size_t i = 1; i < argc; i++) {
+	for (size_t i = 1; i < argc; i++) 
+    {
 		payload_size += std::strlen(argv[i]) + 1;
 	}
 	
@@ -489,7 +515,8 @@ FILDEF void send_files_to_main_window(int argc, char** argv)
 	std::memcpy(payload, &size, 8);
 	
 	size_t offset = 8;
-	for (size_t i = 1; i < argc; i++) {
+	for (size_t i = 1; i < argc; i++) 
+    {
 		size_t len = std::strlen(argv[i]) + 1;
 		std::memcpy(payload + offset, argv[i], len);
 		offset += len;
@@ -510,7 +537,8 @@ FILDEF void send_files_to_main_window(int argc, char** argv)
     SendMessage(hwnd, WM_COPYDATA, CAST(WPARAM, dummy), CAST(LPARAM, &ds));
 	
 	LOG_DEBUG("Sent payload of size %zu:", payload_size);
-	for (size_t i = 1; i < argc; i++) {
+	for (size_t i = 1; i < argc; i++) 
+    {
 		LOG_DEBUG("'%s'", argv[i]);
 	}
 }

@@ -32,14 +32,18 @@ FILDEF bool internal__do_level_tab (float w, const Tab& tab, size_t index, bool 
     if (tab.unsaved_changes) name.insert(0, "* ");
 
     UI_Flag flags = (current) ? UI_HIGHLIGHT : UI_INACTIVE;
-    begin_panel(get_panel_cursor().x, 0, tw, th, flags, ui_color_medium);
+    begin_panel(get_panel_cursor().x, 0, tw, th, flags, tab.color);
 
     set_panel_cursor_dir(UI_DIR_DOWN);
     set_panel_cursor(&cursor1);
 
+    // Check if tab has a custom color to show it.
+    // Only shows tab color if setting is enabled.
+    const bool HAS_COLOR = editor_settings.colored_tabs && tab.color != vec4(0,0,0,0);
+
     // We display the level tab's full file name in the status bar on hover.
     std::string info((tab.name.empty()) ? "Untitled" : tab.name);
-    if (begin_click_panel_gradient(NULL, pw,th+1.0f, flags, info))
+    if (begin_click_panel_gradient(NULL, pw,th+1.0f, flags, info, HAS_COLOR))
     {
         set_current_tab(index);
     }
@@ -54,7 +58,7 @@ FILDEF bool internal__do_level_tab (float w, const Tab& tab, size_t index, bool 
     cursor1.x += pw;
     cursor1.y  = 0.0f;
 
-    if (do_button_img_gradient(NULL, bw,th+1, flags, &CLIP_CROSS, info))
+    if (do_button_img_gradient(NULL, bw,th+1, flags, &CLIP_CROSS, info, HAS_COLOR))
     {
         should_close = true;
     }

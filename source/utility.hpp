@@ -91,6 +91,9 @@ struct quad
     union { float h, y2; };
 };
 
+FILDEF bool operator== (const quad& a, const quad& b);
+FILDEF bool operator!= (const quad& a, const quad& b);
+
 STDDEF std::vector<u8> read_binary_file (std::string file_name);
 STDDEF std::string     read_entire_file (std::string file_name);
 

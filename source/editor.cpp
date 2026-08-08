@@ -21,7 +21,7 @@ FILDEF Tab& internal__create_new_tab_and_focus (Tab_Type type)
     tab.camera.y        = 0;
     tab.camera.zoom     = 1;
     tab.unsaved_changes = false;
-
+    
     // Set this newly added tab to be the current tab for the editor.
     editor.current_tab = location;
 
@@ -117,6 +117,10 @@ FILDEF void internal__load_session_tabs ()
             LOG_DEBUG("No previous session tabs!");
         }
 
+        // Get focused mod.
+        int focused_mod = gon["focused_mod"].Int(1) - 1;
+        if (focused_mod != 0 && focused_mod < modpaths.size() && does_path_exist(modpaths[focused_mod].path)) editor.focused_mod = focused_mod;
+
         // Focus on previously focused tab.
         std::string focused_tab = gon["focused"].String("");
         if (focused_tab.empty()) return;
@@ -149,6 +153,7 @@ FILDEF void internal__save_session_tabs ()
             }
         }
         file << "]\n";
+        file << "focused_mod " << (editor.focused_mod+1) << "\n";
     }
 }
 
@@ -168,6 +173,8 @@ FILDEF void init_editor (int argc, char** argv)
     editor.grid_visible =  true;
     editor.is_panning   = false;
     editor.dialog_box   = false;
+
+    editor.focused_mod = 0;
 
     init_level_editor();
     init_map_editor();
@@ -481,6 +488,7 @@ FILDEF void set_current_tab (size_t index)
     }
 
     editor.current_tab = index;
+    focus_modpath(get_current_tab().name);
 
     // Update the title of the actual window.
     set_main_window_subtitle_for_tab(get_current_tab().name);
@@ -513,6 +521,7 @@ FILDEF void increment_tab ()
         {
             editor.current_tab = 0;
         }
+        focus_modpath(get_current_tab().name);
         set_main_window_subtitle_for_tab(get_current_tab().name);
         maybe_scroll_tab_bar();
 
@@ -531,6 +540,7 @@ FILDEF void decrement_tab ()
         {
             editor.current_tab = editor.tabs.size()-1;
         }
+        focus_modpath(get_current_tab().name);
         set_main_window_subtitle_for_tab(get_current_tab().name);
         maybe_scroll_tab_bar();
 
@@ -636,6 +646,7 @@ FILDEF void close_tab (size_t index)
             else
             {
                 set_main_window_subtitle_for_tab(get_current_tab().name);
+                focus_modpath(get_current_tab().name);
             }
         }
     }
@@ -797,5 +808,14 @@ FILDEF void save_restore_files ()
         file_name = make_path_absolute(file_name);
         if      (editor.tabs.at(i).type == Tab_Type::LEVEL) save_restore_level(editor.tabs.at(i), file_name);
         else if (editor.tabs.at(i).type == Tab_Type::MAP  ) save_restore_map  (editor.tabs.at(i), file_name);
+    }
+}
+
+FILDEF void focus_mod_and_refresh_tab (Tab& tab)
+{
+    focus_modpath(tab.name);
+    if (editor_settings.colored_tabs)
+    {
+        tab.color = infer_tab_color(tab.name);
     }
 }
