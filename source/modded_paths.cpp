@@ -137,6 +137,21 @@ FILDEF void focus_modpath (std::string name)
     }
 }
 
+FILDEF void modpath_drop_file (std::string file_name)
+{
+    ModPath modpath;
+    modpath.path = fix_path_slashes(file_name);
+    modpath.color = ui_color_white;
+    modpath.icon = { 0,  0, 24, 24 };
+    modpath.exists = does_path_exist(modpath.path);
+    modpath.name = strip_file_path(modpath.path);
+
+    modpaths.push_back(modpath);
+
+    // Select the dropped mod path.
+    editor.focused_mod = modpaths.size() - 1;
+}
+
 FILDEF vec4 infer_tab_color (std::string name)
 {
     // Check for tab's filename in modded paths to show tab color.

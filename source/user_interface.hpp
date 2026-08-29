@@ -139,5 +139,6 @@ STDDEF void begin_panel_gradient (float x, float y, float w, float h, UI_Flag fl
 FILDEF void begin_panel_gradient (quad bounds,                        UI_Flag flags, vec4 cl = vec4(0,0,0,0), vec4 cr = vec4(0,0,0,0));
 
 STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_Flag flags, std::string info = "", const bool HAS_COLOR = false);
+STDDEF bool begin_tab                  (UI_Action action, float w, float h, UI_Flag flags, std::string info = "", const bool HAS_COLOR = false, size_t index = 0);
 
 STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip = NULL, std::string info = "", const bool HAS_COLOR = false, std::string kb = "", std::string name = "");

@@ -2331,6 +2331,39 @@ STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_F
     return result;
 }
 
+STDDEF bool begin_tab (UI_Action action, float w, float h, UI_Flag flags, std::string info, const bool HAS_COLOR, size_t index)
+{
+    Panel& parent = ui_panels.top();
+
+    vec2 rcur = internal__get_relative_cursor(parent);
+
+    // Is being clicked and is current tab.
+    if (internal__is_hit() && editor.current_tab==index)
+    {
+        // Clipped bounds. Adding 24 to account for close button's width.
+        vec2 mouse = get_mouse_pos();
+        quad clipped_bounds = internal__get_clipped_bounds(rcur.x, rcur.y, w + 24, h);
+
+        // Determine if the mouse is not inside the tab = mouse has moved out of tab.
+        bool inside = point_in_bounds_xyxy(mouse, clipped_bounds);
+        if (!inside)
+        {
+            if (mouse.x < clipped_bounds.x)
+            {
+                move_tab_left();
+                ui_hit_id -= 2; // Move hit id back by 2 to "hit" previous tab.
+            }
+            else if (mouse.x > clipped_bounds.x2)
+            {
+                move_tab_right();
+                ui_hit_id += 2; // Move hit id forward by 2 to "hit" next tab.
+            }
+        }
+    }
+
+    return begin_click_panel_gradient(action, w, h, flags, info, HAS_COLOR);
+}
+
 STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip, std::string info, const bool HAS_COLOR, std::string kb, std::string name)
 {
     // Make sure that the necessary components are assigned.

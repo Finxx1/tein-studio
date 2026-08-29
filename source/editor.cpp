@@ -282,9 +282,17 @@ FILDEF void handle_editor_events ()
         if (get_window_id("Main") == main_event.drop.windowID)
         {
             std::string file(main_event.drop.file);
-            std::string ext(file.substr(file.find_last_of(".")));
-            if      (ext == ".lvl") level_drop_file(tab, file);
-            else if (ext == ".csv") map_drop_file  (tab, file);
+            if (file.find('.') != std::string::npos)
+            {
+                std::string ext(file.substr(file.find_last_of(".")));
+                if (ext == ".lvl") level_drop_file(tab, file);
+                else if (ext == ".csv") map_drop_file(tab, file);
+            }
+            else
+            {
+                // Doesn't have extension, must be a folder.
+                modpath_drop_file(file);
+            }
         }
         SDL_free(main_event.drop.file); // Docs say to free it!
     }

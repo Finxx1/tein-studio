@@ -1024,6 +1024,19 @@ FILDEF void handle_preferences_menu_events ()
 
     switch (main_event.type)
     {
+        case (SDL_MOUSEWHEEL):
+        {
+            if (preferences_tab == Preferences_Tab::HOTKEYS)
+            {
+                preferences_scroll_offset -= (main_event.wheel.y / get_viewport().h) * 4;
+                preferences_scroll_offset = std::clamp(preferences_scroll_offset, 0.0f, get_viewport().h);
+            }
+            else if (preferences_tab == Preferences_Tab::MODPATHS)
+            {
+                modpaths_scroll_offset -= (main_event.wheel.y / get_viewport().h) * 8;
+                modpaths_scroll_offset = std::clamp(modpaths_scroll_offset, 0.0f, get_viewport().h);
+            }
+        } break;
         case (SDL_KEYDOWN):
         {
             if (!text_box_is_active() && !hotkey_is_active())

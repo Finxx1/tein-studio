@@ -43,7 +43,7 @@ FILDEF bool internal__do_level_tab (float w, const Tab& tab, size_t index, bool 
 
     // We display the level tab's full file name in the status bar on hover.
     std::string info((tab.name.empty()) ? "Untitled" : tab.name);
-    if (begin_click_panel_gradient(NULL, pw,th+1.0f, flags, info, HAS_COLOR))
+    if (begin_tab(NULL, pw,th+1.0f, flags, info, HAS_COLOR, index))
     {
         set_current_tab(index);
     }

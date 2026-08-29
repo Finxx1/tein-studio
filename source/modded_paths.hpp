@@ -33,5 +33,6 @@ FILDEF void     load_new_modpath();
 FILDEF void     focus_prev_mod();
 FILDEF void     focus_next_mod();
 FILDEF void     focus_modpath(std::string name);
+FILDEF void     modpath_drop_file(std::string file_name);
 FILDEF vec4     infer_tab_color(std::string name);
 FILDEF void     dump_modpaths();

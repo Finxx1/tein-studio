@@ -143,14 +143,22 @@ FILDEF void handle_mods_list_events()
 {
     if (!is_window_focused("ModsList")) return;
 
-    if (main_event.type == SDL_KEYDOWN)
+    switch (main_event.type)
     {
-        switch (main_event.key.keysym.sym)
+        case (SDL_MOUSEWHEEL):
         {
+            mods_list_scroll_offset -= (main_event.wheel.y / get_viewport().h) * 4;
+            mods_list_scroll_offset = std::clamp(mods_list_scroll_offset, 0.0f, get_viewport().h);
+        } break;
+        case (SDL_KEYDOWN):
+        {
+            switch (main_event.key.keysym.sym)
+            {
             case (SDLK_ESCAPE): hide_window("ModsList"); break;
             case (SDLK_RETURN): hb_run_focused_mod();    break;
             case (SDLK_UP):     focus_prev_mod();        break;
             case (SDLK_DOWN):   focus_next_mod();        break;
-        }
+            }
+        } break;
     }
 }
