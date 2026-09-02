@@ -477,13 +477,13 @@ FILDEF void internal__save_modded_paths ()
     // Save all of the modded paths to GON format.
     fprintf(file, "modded_paths\n");
     fprintf(file, "[\n");
-    for (auto& it : modpaths)
+    for (ModPath& mp : modpaths)
     {
         fprintf(file,                  "\t{\n");
-        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_NAME,  it.name.c_str()      );
-        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_PATH,  it.path.c_str()      );
-        fprintf(file, "\t\t%s [%f %f %f %f]\n", MODPATH_COLOR, EXPAND_VEC4(it.color));
-        fprintf(file,   "\t\t%s [%.0f %.0f]\n", MODPATH_ICON,  it.icon.x, it.icon.y );
+        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_NAME,  mp.name.c_str()      );
+        fprintf(file,        "\t\t%s \"%s\"\n", MODPATH_PATH,  mp.path.c_str()      );
+        fprintf(file, "\t\t%s [%f %f %f %f]\n", MODPATH_COLOR, EXPAND_VEC4(mp.color));
+        fprintf(file,   "\t\t%s [%.0f %.0f]\n", MODPATH_ICON,  mp.icon.x, mp.icon.y );
         fprintf(file,                  "\t}\n");
     }
     fprintf(file, "]\n");
@@ -892,9 +892,9 @@ FILDEF void internal__do_preferences_modpaths ()
     do_scrollbar(view_width - PREFERENCES_SCROLLBAR_WIDTH + 1, -1, PREFERENCES_SCROLLBAR_WIDTH, view_height+1, content_height, modpaths_scroll_offset);
 
     size_t counter = 0;
-    for (auto& it : modpaths) 
+    for (ModPath& mp : modpaths) 
     { 
-        internal__do_modpath(cursor, &it, counter++);
+        internal__do_modpath(cursor, &mp, counter++);
     }
 
     end_panel();

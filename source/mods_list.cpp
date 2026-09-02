@@ -99,9 +99,9 @@ FILDEF void internal__do_mods_list()
 
     const size_t FOCUSED_MOD = editor.focused_mod;
     size_t counter = 0;
-    for (auto& it : modpaths)
+    for (ModPath& mp : modpaths)
     {
-        internal__do_mod(cursor, it, counter++==FOCUSED_MOD);
+        internal__do_mod(cursor, mp, counter++==FOCUSED_MOD);
     }
 
     end_panel();

@@ -70,12 +70,12 @@ FILDEF void internal__do_mod_buttons (float bw, float bh)
     {
         // Show all mods as separate buttons.
         size_t counter = 0;
-        for (auto& it : modpaths)
+        for (ModPath& mp : modpaths)
         {
             // Show as many mods as can fit without any Overflow.
             // ( 17 obligatory buttons in the toolbar * bw = 527 + 12 for small button )
             if ((bw * (counter + 1)) + 539 >= get_viewport().w) break;
-            internal__do_mod_button(bw, bh, &it, counter++);
+            internal__do_mod_button(bw, bh, &mp, counter++);
         }
     }
     else

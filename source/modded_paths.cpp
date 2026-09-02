@@ -71,9 +71,15 @@ FILDEF void run_game_with_params (const std::string param)
     // Set current mod as last mod played.
     if (!param.empty()) 
     {
-        auto it = std::find_if(modpaths.begin(), modpaths.end(), 
-            [param](const ModPath& mp) -> bool { return mp.path == param.c_str(); });
-        if (it != modpaths.end()) editor.focused_mod = it - modpaths.begin();
+        size_t counter = 0;
+        for (ModPath mp : modpaths)
+        {
+            if (mp.path == param.c_str())
+            {
+                editor.focused_mod = counter;
+            }
+            counter++;
+        }
     }
 }
 
@@ -82,7 +88,7 @@ FILDEF void load_new_modpath ()
     std::vector<std::string> paths = path_dialog();
     if (!paths.empty())
     {
-        for (auto path : paths)
+        for (std::string path : paths)
         {
             // New modded path
             ModPath modpath;
@@ -127,12 +133,14 @@ FILDEF void focus_modpath (std::string name)
 {
     if (editor_settings.focus_tab_mod)
     {
-        const auto& MODDED_PATH = std::find_if(modpaths.begin(), modpaths.end(),
-            [name](const ModPath& mp) -> bool { return name.find(mp.path) == 0; });
-        size_t index = MODDED_PATH - modpaths.begin();
-        if (index < modpaths.size() && index != editor.focused_mod)
+        size_t counter = 0;
+        for (ModPath mp : modpaths)
         {
-            editor.focused_mod = index;
+            if (name.find(mp.path) == 0)
+            {
+                editor.focused_mod = counter;
+            }
+            counter++;
         }
     }
 }
@@ -156,10 +164,11 @@ FILDEF vec4 infer_tab_color (std::string name)
 {
     // Check for tab's filename in modded paths to show tab color.
     try {
-        const auto& MODDED_PATH = std::find_if(modpaths.begin(), modpaths.end(),
-            [name](const ModPath& mp) -> bool { return name.find(mp.path) == 0; });
-        const vec4 TAB_COLOR = MODDED_PATH != modpaths.end() ? MODDED_PATH->color : vec4(0, 0, 0, 0);
-        return TAB_COLOR;
+        for (ModPath mp : modpaths)
+        {
+            if (name.find(mp.path) == 0) return mp.color;
+        }
+        return vec4(0, 0, 0, 0);
     }
     catch (const char* msg)
     {
@@ -173,9 +182,9 @@ FILDEF void dump_modpaths ()
     #define EXPAND_VEC4(v) v.r, v.g, v.b, v.a
     LOG_DEBUG("");
     LOG_DEBUG("[[Mod Paths]]");
-    for (auto& it : modpaths)
+    for (ModPath& mp : modpaths)
     {
-        LOG_DEBUG("%s \"%s\" | %s (\"%s\") | %s (%.2f %.2f %.2f %.2f) | %s [%.0f %.0f]", MODPATH_NAME, it.name.c_str(), MODPATH_PATH, it.path.c_str(), MODPATH_COLOR, EXPAND_VEC4(it.color), MODPATH_ICON, it.icon.x, it.icon.y);
+        LOG_DEBUG("%s \"%s\" | %s (\"%s\") | %s (%.2f %.2f %.2f %.2f) | %s [%.0f %.0f]", MODPATH_NAME, mp.name.c_str(), MODPATH_PATH, mp.path.c_str(), MODPATH_COLOR, EXPAND_VEC4(mp.color), MODPATH_ICON, mp.icon.x, mp.icon.y);
     }
     #undef EXPAND_VEC4
 }
