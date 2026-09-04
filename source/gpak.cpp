@@ -188,10 +188,14 @@ STDDEF int internal__gpak_pack_thread_main (void* user_data)
         u32 file_size    = CAST(u32, get_size_of_file(files.at(i)));
 
         max_size = std::max(max_size, CAST(size_t, file_size));
+		
+		// On Windows, name will likely include paths delimited by \, but we
+		// only unpack properly with /s, so we need to convert them.
+		std::string fixed_name = fix_path_slashes(name);
 
-        fwrite(&name_length, sizeof(u16),  1,           file);
-        fwrite(name.c_str(), sizeof(char), name_length, file);
-        fwrite(&file_size,   sizeof(u32),  1,           file);
+        fwrite(&name_length, sizeof(u16),  1,                 file);
+        fwrite(fixed_name.c_str(), sizeof(char), name_length, file);
+        fwrite(&file_size,   sizeof(u32),  1,                 file);
 
         ++entries_packed;
         args->progress.store(((CAST(float, entries_packed) / CAST(float, entry_count)) / 2));
