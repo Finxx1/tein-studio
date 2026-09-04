@@ -61,7 +61,7 @@ GLOBAL constexpr quad CLIP_BUG         = { 192,  48,  24,  24 };
 GLOBAL constexpr quad CLIP_BACKUPS     = { 144,   0,  24,  24 };
 
 // Width and height set to that of the mod icons resource's dimensions.
-GLOBAL constexpr quad CLIP_MOD_ICONS   = {	 0,   0, 360, 360 };
+GLOBAL constexpr quad CLIP_MOD_ICONS   = {	 0,   0, 384, 360 };
 
 // Globally accessible and generic resources that can be used by the editor.
 // We also have a global copy of the no tile/spawn image texture so that we
