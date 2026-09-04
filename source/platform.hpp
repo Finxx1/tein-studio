@@ -56,7 +56,7 @@ STDDEF std::string get_executable_path       ();
 STDDEF std::string get_appdata_path          ();
 FILDEF std::string get_drive_names           ();
 FILDEF void        make_window_a_child       (std::string name);
-FILDEF bool        run_executable            (std::string exe);
+FILDEF bool        run_executable            (std::string exe, std::string args = "");
 FILDEF void        load_webpage              (std::string url);
 FILDEF void        open_folder               (std::string path_name);
 FILDEF bool        is_first                  ();

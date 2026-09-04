@@ -25,6 +25,7 @@ struct Tab
     std::string     name;
     Camera        camera;
     bool unsaved_changes;
+    vec4           color;
 
     // LEVEL
     Level         level;
@@ -60,6 +61,8 @@ struct Editor
     bool grid_visible;
     bool is_panning;
     bool dialog_box; // NOTE: See <dialog.cpp> for information.
+
+    size_t focused_mod;
 };
 
 GLOBAL Editor editor;
@@ -115,3 +118,5 @@ FILDEF bool save_prompt_all_editor_tabs ();
 FILDEF void open_recently_closed_tab ();
 
 FILDEF void save_restore_files ();
+
+FILDEF void focus_mod_and_refresh_tab(Tab& tab);

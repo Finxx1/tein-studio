@@ -803,6 +803,12 @@ FILDEF float calculate_button_txt_width (std::string text)
 
 STDDEF bool do_button_img (UI_Action action, float w, float h, UI_Flag flags, const quad* clip, std::string info, std::string kb, std::string name)
 {
+    vec4 color = (ui_is_light) ? vec4(.4f, .4f, .4f, 1) : vec4(.73f, .73f, .73f, 1);
+    return do_button_img_color(action, w, h, flags, clip, info, kb, name, color);
+}
+
+STDDEF bool do_button_img_color (UI_Action action, float w, float h, UI_Flag flags, const quad* clip, std::string info, std::string kb, std::string name, vec4 color)
+{
     // Make sure that the necessary components are assigned.
     ASSERT(ui_texture);
 
@@ -824,7 +830,7 @@ STDDEF bool do_button_img (UI_Action action, float w, float h, UI_Flag flags, co
     bool result = internal__handle_widget(cur.x, cur.y, w, h, locked);
     if (result && action) action(); // Make sure action is valid!
 
-    vec4 front  = (ui_is_light) ? vec4(.4f,.4f,.4f, 1) : vec4(.73f,.73f,.73f, 1);
+    vec4 front  =  color;
     vec4 back   =  ui_color_medium;
     vec4 shadow = (ui_is_light) ? vec4(.9f,.9f,.9f, 1) : vec4(.16f,.16f,.16f, 1);
 
@@ -1001,6 +1007,57 @@ FILDEF bool do_button_txt (UI_Action action, float h, UI_Flag flags, std::string
     constexpr float X_PADDING = 20;
     float w = ceilf(get_text_width_scaled(*ui_font, text)) + X_PADDING;
     return do_button_txt(action, w, h, flags, text, info, kb, name);
+}
+
+STDDEF void do_color_swatch (vec2& cursor, float sw, float sh, vec4& color)
+{
+    // If we were presses we want to open the color picker with our color.
+    bool result = internal__handle_widget(cursor.x, cursor.y, sw, sh, false);
+    if (result)
+    {
+        open_color_picker(&color);
+    }
+
+    cursor.y += 3;
+
+    vec4 back = ui_color_light;
+    if (internal__is_hit())      back = (ui_is_light) ? ui_color_med_dark : ui_color_med_light;
+    else if (internal__is_hot()) back = (ui_is_light) ? ui_color_ex_dark  : ui_color_ex_light;
+
+    set_draw_color(back);
+    fill_quad(cursor.x + 0, cursor.y + 0, cursor.x + sw - 0, cursor.y + sh - 0);
+    set_draw_color(ui_color_ex_dark);
+    fill_quad(cursor.x + 1, cursor.y + 1, cursor.x + sw - 1, cursor.y + sh - 1);
+
+    float x1 = cursor.x + 2;
+    float y1 = cursor.y + 2;
+    float x2 = cursor.x + sw - 2;
+    float y2 = cursor.y + sh - 2;
+
+    float tw = x2 - x1;
+    float th = sh - 4;
+    float tx = x1 + (tw / 2);
+    float ty = y1 + (th / 2);
+
+    const Texture& tex = (CAST(int, th) % 14 == 0) ? resource_checker_14 : resource_checker_16;
+
+    quad clip = { 0, 0, tw, th };
+    draw_texture(tex, tx, ty, &clip);
+
+    vec4 max(color.r, color.g, color.b, 1);
+    vec4 min(color.r, color.g, color.b, color.a);
+
+    begin_draw(Buffer_Mode::TRIANGLE_STRIP);
+    put_vertex(x1, y2, min); // BL
+    put_vertex(x1, y1, min); // TL
+    put_vertex(x2, y2, max); // BR
+    put_vertex(x2, y1, max); // TR
+    end_draw();
+
+    cursor.y -= 3;
+    advance_panel_cursor(sw);
+
+    ++ui_current_id;
 }
 
 STDDEF void do_label (UI_Align horz, UI_Align vert, float w, float h, std::string text, vec4 bg)
@@ -1311,7 +1368,8 @@ STDDEF void do_text_box (float w, float h, UI_Flag flags, std::string& text, std
 
     if (!locked)
     {
-        if (internal__handle_widget(cur.x, cur.y, w, h, locked)) {
+        if (internal__handle_widget(cur.x, cur.y, w, h, locked)) 
+        {
             // If the cursor was blinking before then reset the timer.
             if (ui_cursor_blink_timer)
             {
@@ -2212,7 +2270,7 @@ FILDEF void begin_panel_gradient (quad bounds, UI_Flag flags, vec4 cl, vec4 cr)
     begin_panel_gradient(bounds.x, bounds.y, bounds.w, bounds.h, flags, cl, cr);
 }
 
-STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_Flag flags, std::string info)
+STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_Flag flags, std::string info, const bool HAS_COLOR)
 {
     Panel& parent = ui_panels.top();
 
@@ -2232,7 +2290,9 @@ STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_F
     else if (internal__is_hit()) bl = ui_color_dark;
     else if (internal__is_hot()) bl = ui_color_med_light;
 
-    begin_panel_gradient(cur.x, cur.y, w, h, flags, bl, br);
+    // Shave 2 pixels off the top to show tab color.
+    const float TAB_COLOR_SIZE = 2;
+    begin_panel_gradient(cur.x, cur.y+HAS_COLOR ? TAB_COLOR_SIZE : 0, w, h, flags, bl, br);
     internal__advance_ui_cursor_start(parent, w, h);
 
     if (highlight && !internal__is_hit())
@@ -2271,7 +2331,40 @@ STDDEF bool begin_click_panel_gradient (UI_Action action, float w, float h, UI_F
     return result;
 }
 
-STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip, std::string info, std::string kb, std::string name)
+STDDEF bool begin_tab (UI_Action action, float w, float h, UI_Flag flags, std::string info, const bool HAS_COLOR, size_t index)
+{
+    Panel& parent = ui_panels.top();
+
+    vec2 rcur = internal__get_relative_cursor(parent);
+
+    // Is being clicked and is current tab.
+    if (internal__is_hit() && editor.current_tab==index)
+    {
+        // Clipped bounds. Adding 24 to account for close button's width.
+        vec2 mouse = get_mouse_pos();
+        quad clipped_bounds = internal__get_clipped_bounds(rcur.x, rcur.y, w + 24, h);
+
+        // Determine if the mouse is not inside the tab = mouse has moved out of tab.
+        bool inside = point_in_bounds_xyxy(mouse, clipped_bounds);
+        if (!inside)
+        {
+            if (mouse.x < clipped_bounds.x)
+            {
+                move_tab_left();
+                ui_hit_id -= 2; // Move hit id back by 2 to "hit" previous tab.
+            }
+            else if (mouse.x > clipped_bounds.x2)
+            {
+                move_tab_right();
+                ui_hit_id += 2; // Move hit id forward by 2 to "hit" next tab.
+            }
+        }
+    }
+
+    return begin_click_panel_gradient(action, w, h, flags, info, HAS_COLOR);
+}
+
+STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag flags, const quad* clip, std::string info, const bool HAS_COLOR, std::string kb, std::string name)
 {
     // Make sure that the necessary components are assigned.
     ASSERT(ui_texture);
@@ -2310,12 +2403,16 @@ STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag 
         front.a = .5f;
     }
 
+    // Shave 2 pixels off the top to show tab color.
+    const float TAB_COLOR_SIZE = 2;
+    const float COLOR_OFFSET = HAS_COLOR ? TAB_COLOR_SIZE : 0;
+
     // Draw the button's background quad.
     begin_draw(Buffer_Mode::TRIANGLE_STRIP);
-    put_vertex(cur.x,   cur.y+h, bl); // BL
-    put_vertex(cur.x,   cur.y,   bl); // TL
-    put_vertex(cur.x+w, cur.y+h, br); // BR
-    put_vertex(cur.x+w, cur.y,   br); // TR
+    put_vertex(cur.x,   cur.y+COLOR_OFFSET+h, bl); // BL
+    put_vertex(cur.x,   cur.y+COLOR_OFFSET,   bl); // TL
+    put_vertex(cur.x+w, cur.y+COLOR_OFFSET+h, br); // BR
+    put_vertex(cur.x+w, cur.y+COLOR_OFFSET,   br); // TR
     end_draw();
 
     if (highlight && !internal__is_hit())
@@ -2323,17 +2420,17 @@ STDDEF bool do_button_img_gradient (UI_Action action, float w, float h, UI_Flag 
         vec4 color = ui_color_med_light;
         color.a = .66f;
         set_draw_color(color);
-        fill_quad(0, 0, get_viewport().w, get_viewport().h);
+        fill_quad(0, COLOR_OFFSET, get_viewport().w, get_viewport().h);
     }
     if (highlight && internal__is_hit())
     {
         vec4 color = ui_color_med_light;
         color.a = .66f;
         begin_draw(Buffer_Mode::TRIANGLE_STRIP);
-        put_vertex(cur.x,   cur.y+h,         color); // BL
-        put_vertex(cur.x,   cur.y,           color); // TL
-        put_vertex(cur.x+w, cur.y+h, vec4(0,0,0,0)); // BR
-        put_vertex(cur.x+w, cur.y,   vec4(0,0,0,0)); // TR
+        put_vertex(cur.x,   cur.y+COLOR_OFFSET+h,         color); // BL
+        put_vertex(cur.x,   cur.y+COLOR_OFFSET,           color); // TL
+        put_vertex(cur.x+w, cur.y+COLOR_OFFSET+h, vec4(0,0,0,0)); // BR
+        put_vertex(cur.x+w, cur.y+COLOR_OFFSET,   vec4(0,0,0,0)); // TR
         end_draw();
     }
 

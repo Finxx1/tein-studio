@@ -17,6 +17,10 @@ GLOBAL constexpr const char* KEY_BINDINGS_FALLBACK =
 "camera_zoom_out { main [\"Ctrl\" \"-\"] }\n"
 "camera_zoom_in { main [\"Ctrl\" \"=\"] }\n"
 "run_game { main [\"Ctrl\" \"Return\"] }\n"
+"run_focused_mod { main [\"Alt\" \"Return\"] alt [\"Alt\" \"Up\"] }\n"
+"focus_prev_mod { main [\"Alt\" \"Left\"] }\n"
+"focus_next_mod { main [\"Alt\" \"Right\"] }\n"
+"mods_list { main [\"Ctrl\" \"M\"] }\n"
 "preferences { main [\"F2\"] }\n"
 "about { main [\"F3\"] }\n"
 "bug_report { main [\"F4\"] }\n"
@@ -237,6 +241,10 @@ FILDEF void internal__load_editor_key_bindings (const GonObject& a, const GonObj
     internal__add_key_binding(a, b, KB_CAMERA_ZOOM_OUT     , hb_zoom_out                );
     internal__add_key_binding(a, b, KB_CAMERA_ZOOM_IN      , hb_zoom_in                 );
     internal__add_key_binding(a, b, KB_RUN_GAME            , hb_run_game                );
+    internal__add_key_binding(a, b, KB_RUN_FOCUSED_MOD     , hb_run_focused_mod         );
+    internal__add_key_binding(a, b, KB_FOCUS_PREV_MOD      , focus_prev_mod             );
+    internal__add_key_binding(a, b, KB_FOCUS_NEXT_MOD      , focus_next_mod             );
+    internal__add_key_binding(a, b, KB_MODS_LIST           , hb_mods_list               );
     internal__add_key_binding(a, b, KB_PREFERENCES         , hb_preferences             );
     internal__add_key_binding(a, b, KB_ABOUT               , hb_about                   );
     internal__add_key_binding(a, b, KB_BUG_REPORT          , hb_bug_report              );
@@ -463,6 +471,10 @@ FILDEF void dump_editor_key_bindings ()
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_CAMERA_ZOOM_OUT, get_key_binding_main_string(KB_CAMERA_ZOOM_OUT).c_str(), get_key_binding_alt_string(KB_CAMERA_ZOOM_OUT).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_CAMERA_ZOOM_IN, get_key_binding_main_string(KB_CAMERA_ZOOM_IN).c_str(), get_key_binding_alt_string(KB_CAMERA_ZOOM_IN).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_RUN_GAME, get_key_binding_main_string(KB_RUN_GAME).c_str(), get_key_binding_alt_string(KB_RUN_GAME).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_RUN_FOCUSED_MOD, get_key_binding_main_string(KB_RUN_FOCUSED_MOD).c_str(), get_key_binding_alt_string(KB_RUN_FOCUSED_MOD).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_FOCUS_PREV_MOD, get_key_binding_main_string(KB_FOCUS_PREV_MOD).c_str(), get_key_binding_alt_string(KB_FOCUS_PREV_MOD).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_FOCUS_NEXT_MOD, get_key_binding_main_string(KB_FOCUS_NEXT_MOD).c_str(), get_key_binding_alt_string(KB_FOCUS_NEXT_MOD).c_str());
+    LOG_DEBUG("%s \"%s\" (\"%s\")", KB_MODS_LIST, get_key_binding_main_string(KB_MODS_LIST).c_str(), get_key_binding_alt_string(KB_MODS_LIST).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_PREFERENCES, get_key_binding_main_string(KB_PREFERENCES).c_str(), get_key_binding_alt_string(KB_PREFERENCES).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_ABOUT, get_key_binding_main_string(KB_ABOUT).c_str(), get_key_binding_alt_string(KB_ABOUT).c_str());
     LOG_DEBUG("%s \"%s\" (\"%s\")", KB_BUG_REPORT, get_key_binding_main_string(KB_BUG_REPORT).c_str(), get_key_binding_alt_string(KB_BUG_REPORT).c_str());

@@ -892,7 +892,8 @@ FILDEF void handle_map_editor_events ()
                                         for (size_t i=0; i<strlen(text); ++i)
                                         {
                                             auto pos = tab.map_node_info.active->lvl.begin()+(tab.map_node_info.cursor++);
-                                            if (text[i] != '\n' && text[i] != '\r') {
+                                            if (text[i] != '\n' && text[i] != '\r') 
+                                            {
                                                 tab.map_node_info.active->lvl.insert(pos, text[i]);
                                             }
                                         }
@@ -948,26 +949,34 @@ FILDEF void handle_map_editor_events ()
     }
 
     // Reset the cursor blink interval.
-    if (tab.map_node_info.active) {
-        if (old_text != tab.map_node_info.active->lvl || old_cursor != tab.map_node_info.cursor) {
+    if (tab.map_node_info.active) 
+    {
+        if (old_text != tab.map_node_info.active->lvl || old_cursor != tab.map_node_info.cursor) 
+        {
             // If the cursor was blinking before then reset the timer.
-            if (map_editor.cursor_blink_timer) {
+            if (map_editor.cursor_blink_timer) 
+            {
                 SDL_RemoveTimer(map_editor.cursor_blink_timer);
                 map_editor.cursor_blink_timer = NULL;
             }
             // Start the blinking of the cursor.
             map_editor.cursor_visible = true;
             map_editor.cursor_blink_timer = SDL_AddTimer(UI_CURSOR_BLINK_INTERVAL, internal__map_cursor_blink_callback, NULL);
-            if (!map_editor.cursor_blink_timer) {
+            if (!map_editor.cursor_blink_timer) 
+            {
                 LOG_ERROR(ERR_MIN, "Failed to setup cursor blink timer! (%s)", SDL_GetError());
             }
         }
     }
 
-    if (!do_not_set_select) {
-        if (!just_selected) {
-            if ((old_cursor != tab.map_node_info.cursor) || movement_action) {
-                if (!tab.map_node_info.selecting) {
+    if (!do_not_set_select) 
+    {
+        if (!just_selected) 
+        {
+            if ((old_cursor != tab.map_node_info.cursor) || movement_action) 
+            {
+                if (!tab.map_node_info.selecting) 
+                {
                     tab.map_node_info.select = tab.map_node_info.cursor;
                 }
             }
@@ -975,9 +984,12 @@ FILDEF void handle_map_editor_events ()
     }
 
     // Important to stop select issues when holding shift for CAPS.
-    if (tab.map_node_info.active) {
-        if (!just_selected) {
-            if (old_text != tab.map_node_info.active->lvl) {
+    if (tab.map_node_info.active) 
+    {
+        if (!just_selected) 
+        {
+            if (old_text != tab.map_node_info.active->lvl) 
+            {
                 tab.map_node_info.select = tab.map_node_info.cursor;
             }
         }
@@ -1012,6 +1024,10 @@ FILDEF void load_map_tab (std::string file_name)
         {
             close_current_tab();
         }
+        else
+        {
+            focus_mod_and_refresh_tab(tab);
+        }
 
         tab.map_history.state.at(0) = tab.map;
     }
@@ -1028,6 +1044,7 @@ FILDEF bool save_map_tab (Tab& tab)
         std::string file_name = save_dialog(Dialog_Type::CSV);
         if (file_name.empty()) return false;
         tab.name = file_name;
+        focus_mod_and_refresh_tab(tab);
     }
 
     save_map(tab, tab.name);
@@ -1052,6 +1069,7 @@ FILDEF void save_map_tab_as ()
 
     tab.unsaved_changes = false;
     set_main_window_subtitle_for_tab(tab.name);
+    focus_mod_and_refresh_tab(tab);
 }
 
 FILDEF void map_drop_file (Tab* tab, std::string file_name)
@@ -1083,6 +1101,10 @@ FILDEF void map_drop_file (Tab* tab, std::string file_name)
         if (!load_map(*tab, tab->name))
         {
             close_current_tab();
+        }
+        else
+        {
+            focus_mod_and_refresh_tab(*tab);
         }
 
         tab->map_history.state.at(0) = tab->map;

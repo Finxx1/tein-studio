@@ -143,7 +143,8 @@ STDDEF bool load_map (Tab& tab, std::string file_name)
 
     LOG_DEBUG("Loading World Map: %s", file_name.c_str());
 
-    if (!does_file_exist(file_name)) {
+    if (!does_file_exist(file_name)) 
+    {
         LOG_ERROR(ERR_MED, "CSV file '%s' does not exist!", file_name.c_str());
         return false;
     }
